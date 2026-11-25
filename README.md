@@ -15,6 +15,20 @@
 - 发布新 Release 后，`.github/workflows/release-manifest.yml` 会自动更新 `version.json`
 - 如果 GitHub Actions 不可用，发布后手动同步 `version.json` 即可
 
+### 版本规则
+
+当前版本：`ver.0.13`。
+
+- 功能更新：升级到下一个 `ver.0.xx`，例如 `ver.0.14`
+- 纯补丁 / 修 bug：不单独 bump 版本号
+- 功能更新发布时同步修改：
+  - `assets/app.js` 的 `APP_VERSION`
+  - `version.json`
+  - Release tag 和标题
+  - 发布包文件名，例如 `tongji-hub-desktop-ver.0.14.zip`
+
+宣发文见 [PROMO.md](PROMO.md)。
+
 ---
 
 ## 1. 运行

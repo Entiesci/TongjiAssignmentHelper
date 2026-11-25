@@ -56,6 +56,7 @@
   };
   const THEME_KEY = 'tongji-hub:theme';
   const DEVELOPER_GITHUB = 'https://github.com/entiesci';
+  // 功能更新时同步修改 APP_VERSION、version.json、Release tag 和 zip 文件名；纯补丁不 bump。
   const APP_VERSION = 'ver.0.13';
   const UPDATE_MANIFEST_URLS = [
     'https://cdn.jsdelivr.net/gh/Entiesci/TongjiAssignmentHelper@main/version.json',
