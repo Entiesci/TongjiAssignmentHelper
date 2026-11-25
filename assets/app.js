@@ -58,6 +58,8 @@
   const COURSE_MAPS = [
     { test: /衷和楼/, src: '/assets/map/zhonghe.jpg' },
     { test: /物理馆/, src: '/assets/map/wuliguan.jpg' },
+    { test: /瑞安楼/, src: '/assets/map/ruianlou.jpg' },
+    { test: /手球训练馆|南区体育馆/, src: '/assets/map/shouqiu.jpg' },
     { test: /四平机房|机房/, src: '/assets/map/siping-lab.jpg' },
     { test: /^南|南楼/, src: '/assets/map/nanlou.jpg' },
     { test: /^北|北楼/, src: '/assets/map/beilou.jpg' },
