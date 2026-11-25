@@ -2086,6 +2086,10 @@ body.drawer-open {
   margin-bottom: 6px;
 }
 
+.page[data-page="notices"] .page-head {
+  border-bottom: 0;
+}
+
 .notice-head-tools {
   align-items: center;
   gap: 12px;
