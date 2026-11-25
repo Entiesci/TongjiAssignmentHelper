@@ -83,6 +83,7 @@
     lastSync: null,
     syncBusy: false,
     externalSyncBusy: false,
+    settingsTab: 'accounts',
     syncPollTimer: null,
     loading: { calendar: true, notices: true, homework: true },
     ui: {
@@ -358,7 +359,7 @@
     $('#avatarInitials').textContent = initials;
     $('#accountBtnMobile').textContent = initials;
     $('#userName').textContent = state.user.name;
-    $('#userMeta').textContent = `账号配置 · ${state.user.college.replace('科学与技术', '')}`;
+    $('#userMeta').textContent = '设置 · 账号与关于';
   }
 
   async function logout() {
@@ -869,6 +870,7 @@
   }
 
   function openSourcesSheet(focusId) {
+    state.settingsTab = 'accounts';
     setRoute('accounts');
     return;
     if (!state.sources.length) {
@@ -1909,10 +1911,12 @@
     if (!state.sources.length) {
       list.innerHTML = '<div class="empty"><p>正在加载数据源…</p></div>';
       setAccountLoginBusy(Boolean(state.loginBusy));
+      setSettingsTab(state.settingsTab);
       return;
     }
     list.innerHTML = state.sources.map(accountCardHTML).join('');
     setAccountLoginBusy(Boolean(state.loginBusy));
+    setSettingsTab(state.settingsTab);
   }
 
   function accountCardPayload(card) {
@@ -2200,6 +2204,23 @@
 
     const all = $('#loginAllAccounts');
     if (all) all.addEventListener('click', loginAllAccounts);
+
+    $$('[data-settings-tab]').forEach((button) => {
+      button.addEventListener('click', () => setSettingsTab(button.dataset.settingsTab));
+    });
+
+    const checkButton = $('#checkUpdateBtn');
+    if (checkButton) {
+      checkButton.addEventListener('click', async () => {
+        if (checkButton.disabled) return;
+        setBtnBusy(checkButton, true, '检查中…');
+        try {
+          await checkForUpdates({ manual: true });
+        } finally {
+          setBtnBusy(checkButton, false);
+        }
+      });
+    }
   }
 
   function collectSyncFailures(result) {
@@ -2575,7 +2596,29 @@
     `);
   }
 
-  async function checkForUpdates() {
+  function setUpdateStatus(text) {
+    const status = $('#updateStatus');
+    if (status) status.textContent = text;
+  }
+
+  function setSettingsTab(tab) {
+    const next = ['accounts', 'update', 'about'].includes(tab) ? tab : 'accounts';
+    state.settingsTab = next;
+    $$('[data-settings-tab]').forEach((button) => {
+      button.classList.toggle('is-active', button.dataset.settingsTab === next);
+    });
+    $$('[data-settings-panel]').forEach((panel) => {
+      panel.hidden = panel.dataset.settingsPanel !== next;
+    });
+
+    const version = $('#currentVersion');
+    if (version) version.textContent = APP_VERSION;
+  }
+
+  async function checkForUpdates(options = {}) {
+    const manual = Boolean(options.manual);
+    if (manual) setUpdateStatus('正在检查…');
+
     try {
       let manifest = null;
       for (const url of UPDATE_MANIFEST_URLS) {
@@ -2590,10 +2633,22 @@
           /* 尝试下一个地址 */
         }
       }
-      if (!manifest) return;
+
+      if (!manifest) {
+        if (manual) setUpdateStatus('检查失败，请稍后重试');
+        return null;
+      }
 
       const latest = String(manifest.version || '').trim();
-      if (!latest || !isNewerVersion(latest, APP_VERSION)) return;
+      if (!latest) {
+        if (manual) setUpdateStatus('检查失败：版本信息为空');
+        return null;
+      }
+
+      if (!isNewerVersion(latest, APP_VERSION)) {
+        setUpdateStatus(`已是最新版本（${APP_VERSION}）`);
+        return { latest, newer: false };
+      }
 
       let seen = '';
       try {
@@ -2601,16 +2656,21 @@
       } catch (error) {
         /* localStorage 不可用时忽略 */
       }
-      if (seen === latest) return;
+
+      if (!manual && seen === latest) return { latest, newer: true, skipped: true };
 
       try {
         localStorage.setItem(UPDATE_NOTICE_KEY, latest);
       } catch (error) {
         /* ignore */
       }
+
+      setUpdateStatus(`发现新版本 ${latest}`);
       openUpdateDialog(latest, manifest);
+      return { latest, newer: true };
     } catch (error) {
-      /* 检查更新失败不影响主流程 */
+      if (manual) setUpdateStatus('检查失败，请稍后重试');
+      return null;
     }
   }
 

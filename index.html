@@ -169,21 +169,10 @@
           <span class="avatar" id="avatarInitials">陈</span>
           <span class="user-chip-text">
             <strong id="userName">陈予安</strong>
-            <small id="userMeta">账号配置 · 统一身份认证</small>
+            <small id="userMeta">设置 · 账号与关于</small>
           </span>
           <span class="account-entry-arrow">→</span>
         </button>
-      </div>
-
-      <div class="side-visits" aria-label="网页访问次数">
-        <span>VISITS</span>
-        <img
-          src="https://w.saobby.com/w/8eh7qt4m"
-          alt="网页访问次数"
-          referrerpolicy="no-referrer"
-          onerror="this.hidden=true;this.nextElementSibling.hidden=false"
-        >
-        <span class="side-visits-fallback" hidden>—</span>
       </div>
     </aside>
 
@@ -336,20 +325,82 @@
         <section class="page" data-page="accounts" hidden>
           <header class="page-head">
             <div class="page-heading">
-              <p class="kicker">PLATFORM ACCOUNTS</p>
-              <h1 class="page-title">账号配置<span class="title-index">04</span></h1>
-              <p class="page-desc">先填好各平台账号密码，再点「全部自动登录」：系统会先保存，再逐个平台登录。</p>
-            </div>
-            <div class="page-tools">
-              <button class="btn btn-primary login-all-btn" id="loginAllAccounts" type="button">
-                <span class="login-all-text">全部自动登录</span>
-                <span class="login-progress" aria-hidden="true"><i></i></span>
-              </button>
+              <p class="kicker">SETTINGS</p>
+              <h1 class="page-title">设置<span class="title-index">04</span></h1>
+              <p class="page-desc">账号、更新与关于，都在这里。</p>
             </div>
           </header>
 
-          <section class="auth-gate" id="accountsGate" hidden></section>
-          <div class="accounts-grid" id="accountsList"></div>
+          <div class="settings-layout">
+            <nav class="settings-nav" aria-label="设置分区">
+              <button class="settings-nav-item is-active" type="button" data-settings-tab="accounts">账号配置</button>
+              <button class="settings-nav-item" type="button" data-settings-tab="update">检查更新</button>
+              <button class="settings-nav-item" type="button" data-settings-tab="about">关于</button>
+            </nav>
+
+            <div class="settings-panels">
+              <section class="settings-panel" data-settings-panel="accounts">
+                <div class="settings-panel-head">
+                  <div>
+                    <p class="kicker">PLATFORM ACCOUNTS</p>
+                    <h2>账号配置</h2>
+                    <p>先填好各平台账号密码，再点「全部自动登录」：系统会先保存，再逐个平台登录。</p>
+                  </div>
+                  <button class="btn btn-primary login-all-btn" id="loginAllAccounts" type="button">
+                    <span class="login-all-text">全部自动登录</span>
+                    <span class="login-progress" aria-hidden="true"><i></i></span>
+                  </button>
+                </div>
+
+                <section class="auth-gate" id="accountsGate" hidden></section>
+                <div class="accounts-grid" id="accountsList"></div>
+              </section>
+
+              <section class="settings-panel" data-settings-panel="update" hidden>
+                <div class="settings-panel-head">
+                  <div>
+                    <p class="kicker">UPDATE</p>
+                    <h2>检查更新</h2>
+                    <p>从 GitHub Release 获取最新版本信息。</p>
+                  </div>
+                </div>
+                <div class="settings-update-card">
+                  <div class="settings-update-row">
+                    <span>当前版本</span>
+                    <strong id="currentVersion">ver.0.13</strong>
+                  </div>
+                  <p class="settings-muted" id="updateStatus">尚未检查</p>
+                  <button class="btn btn-primary" id="checkUpdateBtn" type="button">检查更新</button>
+                </div>
+              </section>
+
+              <section class="settings-panel" data-settings-panel="about" hidden>
+                <div class="settings-panel-head">
+                  <div>
+                    <p class="kicker">ABOUT</p>
+                    <h2>关于</h2>
+                    <p>同舟 · 校园手账</p>
+                  </div>
+                </div>
+                <div class="settings-about-card">
+                  <p>感谢开发者 <strong>entiesci</strong>，把校历、学校通知和作业收进同一个安静的页面。</p>
+                  <a class="btn btn-outline" href="https://github.com/entiesci" target="_blank" rel="noreferrer">github.com/entiesci</a>
+                  <p>也感谢 <strong>大肥鱼</strong> 的支持与帮助。</p>
+                  <p class="settings-muted">感谢同济大学提供的算力支持。</p>
+                  <div class="settings-visits" aria-label="网页访问次数">
+                    <span>VISITS</span>
+                    <img
+                      src="https://w.saobby.com/w/8eh7qt4m"
+                      alt="网页访问次数"
+                      referrerpolicy="no-referrer"
+                      onerror="this.hidden=true;this.nextElementSibling.hidden=false"
+                    >
+                    <span class="side-visits-fallback" hidden>—</span>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
         </section>
       </main>
     </div>
