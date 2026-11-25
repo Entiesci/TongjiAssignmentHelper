@@ -1,5 +1,5 @@
 {
-  "version": "ver.0.14",
-  "url": "https://github.com/Entiesci/TongjiAssignmentHelper/releases/tag/ver.0.14",
-  "notes": "本次更新：\n\n- 校历加入考试信息，考试日期、时间、地点一眼可见\n- 右侧选中日期抽屉改为课表样式，按第 1–11 节展示课程\n- 课表按上午 / 下午 / 晚上分组，没课的位置留空\n- 考试、DDL、假期、调课放在课表上方提示\n"
+  "version": "ver.0.15",
+  "url": "https://github.com/Entiesci/TongjiAssignmentHelper/releases/tag/ver.0.15",
+  "notes": "本次更新：\n\n- 平台状态移到「同步作业」上方，改为更轻的展示\n- 校历精简为 5 个分类：作业DDL、课程、考试、假期、调课\n- 重新分配分类颜色，课程改为黛蓝、考试深红、调课青绿\n- 考试以红色课程块显示在课表中，并标注「考试」\n"
 }
