@@ -40,7 +40,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File desktop\TongjiTray.ps1
 
 如果双击 `start-tray.bat` 出现 Windows 的「无法验证发布者」安全警告，这是系统对批处理文件的提示，不是程序错误。可以直接双击项目根目录的 `启动同舟.vbs`，或者双击 `desktop\start-tray.vbs`，都不会经过 `.bat` 的这层警告。
 
-`启动同舟.vbs` 是按自身位置计算项目路径的，整个文件夹移动到别处也能用。想要桌面快捷方式，双击 `创建快捷方式.vbs`，它会在当前文件夹生成 `启动同舟.lnk`。
+`启动同舟.vbs` 是按自身位置计算项目路径的，整个文件夹移动到别处也能用。想要开机自动启动，双击根目录的 `设置开机启动.vbs`；再次运行可以取消。
 
 右键托盘图标：
 
