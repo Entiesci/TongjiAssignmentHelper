@@ -2088,6 +2088,8 @@ body.drawer-open {
 
 .page[data-page="notices"] .page-head {
   border-bottom: 0;
+  margin-bottom: 6px;
+  padding-bottom: 0;
 }
 
 .notice-head-tools {
