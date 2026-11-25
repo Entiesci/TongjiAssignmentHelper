@@ -60,6 +60,7 @@
   const UPDATE_MANIFEST_URLS = [
     'https://cdn.jsdelivr.net/gh/Entiesci/TongjiAssignmentHelper@main/version.json',
     'https://raw.githubusercontent.com/Entiesci/TongjiAssignmentHelper/main/version.json',
+    '/version.json',
   ];
   const UPDATE_NOTICE_KEY = 'tongji-hub:update-notice';
   // 功能保留但暂不开放：隐藏主题按钮，强制浅色
