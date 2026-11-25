@@ -1802,7 +1802,7 @@
     ).join('');
     $('#platformBar').innerHTML = Array.from(
       { length: 3 },
-      () => `<div class="platform-card"><div class="skeleton" style="height:32px"></div><div class="skeleton" style="height:8px;margin-top:16px"></div></div>`
+      () => `<div class="platform-card"><span class="skeleton" style="display:block;width:100%;height:10px"></span></div>`
     ).join('');
     $('#hwList').innerHTML = Array.from(
       { length: 4 },

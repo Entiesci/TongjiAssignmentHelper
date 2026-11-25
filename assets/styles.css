@@ -2601,6 +2601,93 @@ body.drawer-open {
   opacity: 0.6;
 }
 
+.hw-tools {
+  align-items: center;
+  min-width: 0;
+}
+
+.platform-strip-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.platform-strip-inline .platform-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 42px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--card) 55%, transparent);
+}
+
+.platform-strip-inline .platform-card.is-off {
+  border: 1px solid var(--line);
+  background: transparent;
+  opacity: 0.7;
+}
+
+.platform-strip-inline .platform-head {
+  gap: 6px;
+}
+
+.platform-strip-inline .platform-logo {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  font-size: 9px;
+  opacity: 0.72;
+}
+
+.platform-strip-inline .platform-info strong {
+  color: var(--ink-2);
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.platform-strip-inline .platform-info span {
+  display: none;
+}
+
+.platform-strip-inline .platform-foot {
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.platform-strip-inline .platform-state {
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.platform-strip-inline .platform-sync {
+  font-size: 7.5px;
+  opacity: 0.55;
+}
+
+@media (max-width: 760px) {
+  .hw-tools {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .platform-strip-inline {
+    order: 2;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .platform-strip-inline .platform-card {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
 .platform-card {
   padding: 15px 16px 12px;
   border: 1px solid var(--line);
