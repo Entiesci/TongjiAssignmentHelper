@@ -1304,6 +1304,18 @@
     return { start, end: Math.min(11, Math.max(start, end)) };
   }
 
+  function timeToPeriod(value) {
+    const match = String(value || '').match(/(\d{1,2}):(\d{2})/);
+    if (!match) return 1;
+    const minutes = Number(match[1]) * 60 + Number(match[2]);
+    let best = 1;
+    for (const period of periodTimes()) {
+      const [hour, minute] = period.start.split(':').map(Number);
+      if (hour * 60 + minute <= minutes) best = period.node;
+    }
+    return best;
+  }
+
   function renderDayCard() {
     if (!state.semester) return;
     const date = parseKey(state.ui.selectedDate);
@@ -1312,24 +1324,38 @@
     const week = weekOf(date);
     const weekLabel = week >= 1 && week <= state.semester.totalWeeks ? `第 ${week} 周` : '假期';
 
-    const examEvents = events.filter((event) => event.category === 'exam');
     const alerts = events.filter(
       (event) => event.category !== 'course' && event.category !== 'exam'
     );
-    const courses = [];
+    const blocks = [];
+
     for (const event of events) {
-      if (event.category !== 'course') continue;
-      const range = periodRange(event);
-      if (range) courses.push({ event, ...range });
-      else alerts.push(event);
+      if (event.category === 'course') {
+        const range = periodRange(event);
+        if (range) {
+          blocks.push({ event, ...range, kind: 'course' });
+        } else {
+          alerts.push(event);
+        }
+        continue;
+      }
+
+      if (event.category === 'exam') {
+        const start = timeToPeriod(event.time);
+        blocks.push({
+          event,
+          start,
+          end: Math.min(11, start + 1),
+          kind: 'exam',
+        });
+      }
     }
 
     alerts.sort((a, b) => compareEvents(a, b));
-    examEvents.sort((a, b) => compareEvents(a, b));
-    courses.sort((a, b) => a.start - b.start || a.end - b.end);
+    blocks.sort((a, b) => a.start - b.start || a.end - b.end);
 
     const lanes = [];
-    for (const block of courses) {
+    for (const block of blocks) {
       let lane = lanes.findIndex((end) => end <= block.start);
       if (lane === -1) {
         lane = lanes.length;
@@ -1360,35 +1386,11 @@
           .join('')}</div>`
       : '';
 
-    const examHtml = examEvents.length
-      ? `<div class="day-exam-section" style="grid-row:1;grid-column:1 / -1">
-          <div class="day-exam-head"><span>考试</span><small>${examEvents.length} 场</small></div>
-          ${examEvents
-            .map(
-              (event) => `
-              <button class="day-exam-card cat-exam" type="button" data-event="${event.id}">
-                <strong>${escapeHTML(event.title)}</strong>
-                <small>${escapeHTML(event.time)}${
-                  event.location && event.location !== '—'
-                    ? ` · ${escapeHTML(event.location)}`
-                    : ''
-                }</small>
-              </button>`
-            )
-            .join('')}
-        </div>`
-      : '';
-
     const periods = periodTimes();
     const rowMap = new Map();
     const rowTemplate = [];
     const sectionHtml = [];
     let rowIndex = 1;
-
-    if (examEvents.length) {
-      rowTemplate.push('auto');
-      rowIndex = 2;
-    }
 
     for (const section of PERIOD_SECTIONS) {
       sectionHtml.push(`
@@ -1416,19 +1418,23 @@
       )
       .join('');
 
-    const courseHtml = courses
+    const courseHtml = blocks
       .map((block) => {
         const startRow = rowMap.get(block.start);
         const endRow = rowMap.get(block.end);
+        const isExam = block.kind === 'exam';
+        const meta = isExam
+          ? `${block.event.time}${block.event.location && block.event.location !== '—' ? ` · ${block.event.location}` : ''}`
+          : block.event.location || '';
         return `
         <button
-          class="day-course cat-course"
+          class="day-course cat-${isExam ? 'exam' : 'course'}"
           type="button"
           data-event="${block.event.id}"
           style="grid-row:${startRow}/${endRow + 1};grid-column:${block.lane + 2}"
         >
           <strong>${escapeHTML(block.event.title)}</strong>
-          <small>${escapeHTML(block.event.location || '')}</small>
+          <small>${escapeHTML(meta)}</small>
         </button>`;
       })
       .join('');
@@ -1444,7 +1450,6 @@
       </div>
       ${alertsHtml}
       <div class="day-timetable" style="grid-template-columns:66px repeat(${laneCount}, minmax(0, 1fr));grid-template-rows:${rowTemplate.join(' ')}">
-        ${examHtml}
         ${sectionHtml.join('')}
         ${periodHtml}
         ${courseHtml}
