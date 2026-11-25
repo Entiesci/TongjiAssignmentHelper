@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f0e8">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='6' fill='%23c04a35'/%3E%3Ctext x='32' y='43' font-family='serif' font-size='34' fill='%23fff8ef' text-anchor='middle'%3E同%3C/text%3E%3C/svg%3E">
+  <title>同舟 · 校园手账</title>
+  <meta name="description" content="校历、学校通知与三平台作业，收进一个页面。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <!-- 线性图标 sprite -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4 11 13"/><path d="M20 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+    <symbol id="i-clipboard" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h6"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5"/><path d="M9 3h6l-1 6 4 4H6l4-4-1-6z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></symbol>
+    <symbol id="i-arrow-up-right" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></symbol>
+  </svg>
+
+  <!-- ==================== 登录 ==================== -->
+  <section class="login" id="loginView">
+    <aside class="login-art">
+      <div class="art-grid" aria-hidden="true"></div>
+      <div class="art-watermark" aria-hidden="true">同舟</div>
+
+      <header class="login-brand">
+        <span class="seal-mark">同</span>
+        <div class="brand-copy">
+          <strong>同舟</strong>
+          <small>CAMPUS LEDGER</small>
+        </div>
+      </header>
+
+      <div class="login-copy">
+        <p class="kicker kicker-light">TONGJI UNIVERSITY · 2026</p>
+        <h1>把校园<br>写成一本<br><em>手账。</em></h1>
+        <p class="login-lead">校历、学校通知与三平台作业，<br>在一个安静的页面里各就各位。</p>
+      </div>
+
+      <div class="art-calendar" aria-hidden="true">
+        <div class="art-cal-head">
+          <span id="artMonth">NOV.</span>
+          <span id="artYear">2026</span>
+        </div>
+        <div class="art-cal-week" id="artWeek"></div>
+        <div class="art-cal-grid" id="artCalGrid"></div>
+        <div class="art-cal-note" id="artCalNote">期中考试周 · 11.16 — 11.20</div>
+      </div>
+
+      <span class="art-seal" aria-hidden="true">济</span>
+
+      <footer class="login-art-foot">
+        <span>同舟共济</span>
+        <span>自强不息</span>
+      </footer>
+    </aside>
+
+    <main class="login-panel">
+      <div class="login-form">
+        <div class="login-form-head">
+          <p class="kicker">SIGN IN</p>
+          <h2>登录校园账户</h2>
+          <p>使用同济大学统一身份认证继续</p>
+        </div>
+
+        <form id="loginForm" novalidate>
+          <div class="field">
+            <label for="loginId">学号 / 工号</label>
+            <input id="loginId" name="studentId" type="text" placeholder="例如 2151234" autocomplete="username" spellcheck="false">
+          </div>
+          <div class="field">
+            <label for="loginPw">密码</label>
+            <div class="field-line">
+              <input id="loginPw" name="password" type="password" placeholder="输入统一身份认证密码" autocomplete="current-password">
+              <button type="button" class="field-action" id="pwToggle">显示</button>
+            </div>
+          </div>
+          <p class="form-error" id="loginError" hidden></p>
+          <div class="form-row">
+            <label class="checkline">
+              <input type="checkbox" id="remember" checked>
+              <span>保持登录</span>
+            </label>
+            <button type="button" class="link-btn" id="forgotLink">忘记密码</button>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+            <span>登录</span><span class="btn-arrow">→</span>
+          </button>
+          <button type="button" class="btn btn-outline btn-block" id="demoBtn">使用演示账号</button>
+          <p class="demo-note">演示环境不连接真实系统，任意账号密码均可进入。</p>
+        </form>
+
+        <div class="login-foot">
+          <span>遇到问题？</span>
+          <a href="https://1.tongji.edu.cn" target="_blank" rel="noopener">前往统一身份认证 ↗</a>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <!-- ==================== 应用 ==================== -->
+  <div class="shell" id="shell" hidden>
+    <aside class="sidebar">
+      <button class="sidebar-brand" id="aboutBtn" type="button" aria-label="关于同舟">
+        <span class="seal-mark small">同</span>
+        <span class="brand-copy">
+          <strong>同舟</strong>
+          <small>CAMPUS LEDGER</small>
+        </span>
+      </button>
+
+      <nav class="side-nav" aria-label="主导航">
+        <button class="side-link" data-route="calendar">
+          <span class="side-num">01</span>
+          <span class="side-label">校历</span>
+          <span class="side-arrow">→</span>
+        </button>
+        <button class="side-link" data-route="notices">
+          <span class="side-num">02</span>
+          <span class="side-label">学校通知</span>
+          <span class="side-count" data-badge="notices" hidden>0</span>
+          <span class="side-arrow">→</span>
+        </button>
+        <button class="side-link" data-route="homework">
+          <span class="side-num">03</span>
+          <span class="side-label">作业通知</span>
+          <span class="side-count" data-badge="homework" hidden>0</span>
+          <span class="side-arrow">→</span>
+        </button>
+      </nav>
+
+      <div class="side-term">
+        <p class="side-term-label">CURRENT TERM</p>
+        <p class="side-term-name" id="sideTerm">正在加载…</p>
+        <div class="side-term-meta">
+          <span id="sideWeek">第 — 周</span>
+          <span id="sideDays">—</span>
+        </div>
+      </div>
+
+      <div class="side-foot">
+        <button class="icon-btn" id="themeToggle" aria-label="切换深浅色" title="切换深浅色">
+          <svg class="icon icon-sun"><use href="#i-sun"/></svg>
+          <svg class="icon icon-moon"><use href="#i-moon"/></svg>
+        </button>
+        <button class="user-chip account-entry" id="accountBtn">
+          <span class="avatar" id="avatarInitials">陈</span>
+          <span class="user-chip-text">
+            <strong id="userName">陈予安</strong>
+            <small id="userMeta">账号配置 · 统一身份认证</small>
+          </span>
+          <span class="account-entry-arrow">→</span>
+        </button>
+      </div>
+
+      <div class="side-visits" aria-label="网页访问次数">
+        <span>VISITS</span>
+        <img
+          src="https://w.saobby.com/w/8eh7qt4m"
+          alt="网页访问次数"
+          referrerpolicy="no-referrer"
+          onerror="this.hidden=true;this.nextElementSibling.hidden=false"
+        >
+        <span class="side-visits-fallback" hidden>—</span>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <header class="mobile-bar">
+        <button class="mobile-brand" id="aboutBtnMobile" type="button" aria-label="关于同舟">
+          <span class="seal-mark small">同</span>
+          <strong>同舟</strong>
+        </button>
+        <div class="mobile-actions">
+          <button class="mobile-source" id="sourcesBtnMobile" type="button">账号</button>
+          <button class="icon-btn" id="themeToggleMobile" aria-label="切换深浅色">
+            <svg class="icon icon-sun"><use href="#i-sun"/></svg>
+            <svg class="icon icon-moon"><use href="#i-moon"/></svg>
+          </button>
+          <button class="avatar avatar-btn" id="accountBtnMobile">同</button>
+        </div>
+      </header>
+
+      <nav class="mobile-tabs" aria-label="主导航">
+        <button data-route="calendar"><span>01</span>校历</button>
+        <button data-route="notices"><span>02</span>通知<i class="tab-dot" data-badge="notices" hidden></i></button>
+        <button data-route="homework"><span>03</span>作业<i class="tab-dot" data-badge="homework" hidden></i></button>
+      </nav>
+
+      <main class="content">
+        <!-- ==================== 页面 1 · 校历 ==================== -->
+        <section class="page" data-page="calendar">
+          <header class="page-head calendar-page-head">
+            <p class="kicker" id="calKicker">ACADEMIC CALENDAR</p>
+            <p class="page-desc" id="calWeekInfo">正在加载学期信息…</p>
+          </header>
+
+          <section class="auth-gate" id="calAuthGate" hidden></section>
+
+          <div class="calendar-layout" id="calendarLayout">
+            <section class="calendar-panel">
+              <div class="calendar-head">
+                <div class="month-nav">
+                  <button class="square-btn" id="prevMonth" aria-label="上个月">←</button>
+                  <h2 id="monthLabel">—</h2>
+                  <button class="square-btn" id="nextMonth" aria-label="下个月">→</button>
+                </div>
+                <div class="calendar-head-right">
+                  <div class="calendar-legend" id="calLegend"></div>
+                  <div class="calendar-actions">
+                    <button class="btn btn-ghost" type="button" id="calExport">导出 .ics</button>
+                    <button class="btn btn-ghost" type="button" id="calToday">回到今天</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="calendar-body">
+                <div class="calendar-main">
+                  <div class="cal-weekdays" id="calWeekdays"></div>
+                  <div class="cal-grid" id="calendarGrid"></div>
+                </div>
+                <aside class="term-rail" aria-label="学期进度">
+                  <span class="term-rail-title">学期进度</span>
+                  <div class="term-track" id="termTrack"></div>
+                  <span class="term-rail-week" id="termProgressLabel">第 — / 18 周</span>
+                </aside>
+              </div>
+
+              <section class="panel milestone-panel calendar-milestones">
+                <div class="panel-heading">
+                  <h2>学期节点</h2>
+                  <span class="panel-note">UPCOMING</span>
+                </div>
+                <div class="milestone-list" id="upcomingList"></div>
+              </section>
+            </section>
+          </div>
+
+          <div class="day-drawer" id="dayDrawer" hidden>
+            <div class="day-drawer-scrim" data-close-drawer></div>
+            <aside class="day-drawer-panel" role="dialog" aria-modal="true" aria-label="当日日程">
+              <button class="icon-btn day-drawer-close" type="button" data-close-drawer aria-label="关闭">
+                <svg class="icon"><use href="#i-close"/></svg>
+              </button>
+              <section class="panel day-panel" id="dayCard"></section>
+            </aside>
+          </div>
+        </section>
+
+        <!-- ==================== 页面 2 · 学校通知 ==================== -->
+        <section class="page" data-page="notices" hidden>
+          <header class="page-head">
+            <div class="page-heading">
+              <p class="kicker">CAMPUS BULLETIN</p>
+              <h1 class="page-title">学校通知<span class="title-index">02</span></h1>
+              <p class="page-desc"><span id="noticeUnreadCount">0</span> 条未读 · 来自统一身份认证门户</p>
+            </div>
+            <div class="page-tools">
+              <button class="btn btn-ghost" id="markAllRead">全部标为已读</button>
+            </div>
+          </header>
+
+          <section class="auth-gate" id="noticeAuthGate" hidden></section>
+
+          <div class="notice-toolbar" id="noticesToolbar">
+            <div class="tabs" id="noticeFilters" role="tablist" aria-label="通知分类"></div>
+            <div class="toolbar-right">
+              <label class="search-box">
+                <svg class="icon"><use href="#i-search"/></svg>
+                <input id="noticeSearch" type="search" placeholder="搜索通知" autocomplete="off">
+              </label>
+              <button class="switch" id="unreadOnly" role="switch" aria-checked="false">
+                <span class="switch-box"></span>
+                <span>只看未读</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="notices-layout" id="noticesLayout">
+            <div class="notice-list-panel">
+              <div class="notice-list" id="noticeList"></div>
+            </div>
+            <aside class="notice-detail-panel" id="noticeDetail"></aside>
+          </div>
+        </section>
+
+        <!-- ==================== 页面 3 · 作业通知 ==================== -->
+        <section class="page" data-page="homework" hidden>
+          <header class="page-head">
+            <div class="page-heading">
+              <p class="kicker">ASSIGNMENTS / 3 PLATFORMS</p>
+              <h1 class="page-title">作业通知<span class="title-index">03</span></h1>
+              <p class="page-desc" id="hwLastSync">上次同步 —</p>
+            </div>
+            <div class="page-tools">
+              <button class="btn btn-primary sync-btn" id="syncBtn" type="button">
+                <svg class="icon"><use href="#i-refresh"/></svg>
+                <span class="sync-btn-text">同步作业</span>
+                <span class="sync-progress" aria-hidden="true"><i></i></span>
+              </button>
+            </div>
+          </header>
+
+          <section class="auth-gate" id="hwAuthGate" hidden></section>
+
+          <div id="hwContent">
+            <section class="stat-strip" id="hwStats"></section>
+            <section class="platform-strip" id="platformBar"></section>
+            <div class="hw-list" id="hwList"></div>
+          </div>
+        </section>
+
+        <!-- ==================== 页面 4 · 账号配置 ==================== -->
+        <section class="page" data-page="accounts" hidden>
+          <header class="page-head">
+            <div class="page-heading">
+              <p class="kicker">PLATFORM ACCOUNTS</p>
+              <h1 class="page-title">账号配置<span class="title-index">04</span></h1>
+              <p class="page-desc">先填好各平台账号密码，再点「全部自动登录」：系统会先保存，再逐个平台登录。</p>
+            </div>
+            <div class="page-tools">
+              <button class="btn btn-primary login-all-btn" id="loginAllAccounts" type="button">
+                <span class="login-all-text">全部自动登录</span>
+                <span class="login-progress" aria-hidden="true"><i></i></span>
+              </button>
+            </div>
+          </header>
+
+          <section class="auth-gate" id="accountsGate" hidden></section>
+          <div class="accounts-grid" id="accountsList"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="dialogRoot"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="assets/api.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

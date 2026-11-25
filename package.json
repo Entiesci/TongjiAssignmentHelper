@@ -1,0 +1,13 @@
+{
+  "name": "tongji-hub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "同舟 · 校园手账：从学校门户、Canvas、Educoder、课堂派抓取真实数据",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node server.mjs"
+  },
+  "dependencies": {
+    "playwright-core": "^1.65.1"
+  }
+}

@@ -1,0 +1,6 @@
+.data/
+node_modules/
+.probe/
+.npm-cache/
+desktop/TongjiTray.log
+启动同舟.lnk
