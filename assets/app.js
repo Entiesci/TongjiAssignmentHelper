@@ -61,7 +61,6 @@
     'https://cdn.jsdelivr.net/gh/Entiesci/TongjiAssignmentHelper@main/version.json',
     'https://raw.githubusercontent.com/Entiesci/TongjiAssignmentHelper/main/version.json',
   ];
-  const UPDATE_NOTICE_KEY = 'tongji-hub:update-notice';
   // 功能保留但暂不开放：隐藏主题按钮，强制浅色
   const THEME_TOGGLE_ENABLED = false;
   const ROUTES = ['calendar', 'notices', 'homework', 'accounts'];
@@ -2659,21 +2658,7 @@
         return { latest, newer: false };
       }
 
-      let seen = '';
-      try {
-        seen = localStorage.getItem(UPDATE_NOTICE_KEY) || '';
-      } catch (error) {
-        /* localStorage 不可用时忽略 */
-      }
-
-      if (!manual && seen === latest) return { latest, newer: true, skipped: true };
-
-      try {
-        localStorage.setItem(UPDATE_NOTICE_KEY, latest);
-      } catch (error) {
-        /* ignore */
-      }
-
+      // 每次页面启动都提示；不写入已读状态，切换设置页不会重复触发
       setUpdateStatus(`发现新版本 ${latest}`);
       openUpdateDialog(latest, manifest);
       return { latest, newer: true };
