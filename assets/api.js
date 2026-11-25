@@ -68,6 +68,7 @@
 
   const getCalendar = () => request('/api/calendar');
   const getTimetable = () => request('/api/timetable');
+  const getExams = () => request('/api/exams');
   const getNotices = () => request('/api/notices');
   const getAssignments = () => request('/api/assignments');
   const syncAssignments = () => request('/api/assignments/sync', { method: 'POST' });
@@ -97,6 +98,7 @@
     disconnectSource,
     getCalendar,
     getTimetable,
+    getExams,
     getNotices,
     getAssignments,
     syncAssignments,

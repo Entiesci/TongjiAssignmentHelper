@@ -24,12 +24,32 @@
     adjust: '调课',
     admin: '事务',
   };
+  const PERIOD_SECTIONS = [
+    { label: '上午', start: 1, end: 4 },
+    { label: '下午', start: 5, end: 8 },
+    { label: '晚上', start: 9, end: 11 },
+  ];
+
+  const DEFAULT_PERIOD_TIMES = [
+    ['08:00', '08:45'],
+    ['08:50', '09:35'],
+    ['10:00', '10:45'],
+    ['10:50', '11:35'],
+    ['13:30', '14:15'],
+    ['14:20', '15:05'],
+    ['15:30', '16:15'],
+    ['16:20', '17:05'],
+    ['18:30', '19:15'],
+    ['19:20', '20:05'],
+    ['20:10', '20:55'],
+  ];
+
   const CATEGORY_PRIORITY = {
     deadline: 0,
     holiday: 1,
     adjust: 2,
+    exam: 2,
     course: 3,
-    exam: 4,
     teaching: 5,
     activity: 5,
     admin: 6,
@@ -57,7 +77,7 @@
   const THEME_KEY = 'tongji-hub:theme';
   const DEVELOPER_GITHUB = 'https://github.com/entiesci';
   // 功能更新时同步修改 APP_VERSION、version.json、Release tag 和 zip 文件名；纯补丁不 bump。
-  const APP_VERSION = 'ver.0.13';
+  const APP_VERSION = 'ver.0.14';
   const UPDATE_MANIFEST_URLS = [
     'https://cdn.jsdelivr.net/gh/Entiesci/TongjiAssignmentHelper@main/version.json',
     'https://raw.githubusercontent.com/Entiesci/TongjiAssignmentHelper/main/version.json',
@@ -76,6 +96,8 @@
     eventMap: new Map(),
     notices: [],
     assignments: [],
+    exams: [],
+    examPeriods: [],
     platforms: [],
     sources: [],
     authErrors: {},
@@ -372,6 +394,8 @@
     state.user = null;
     state.notices = [];
     state.assignments = [];
+    state.exams = [];
+    state.examPeriods = [];
     state.platforms = [];
     state.events = [];
     state.eventMap.clear();
@@ -435,12 +459,14 @@
       state.sources = sourceResult.value.sources || [];
     }
 
-    const [calResult, timetableResult, noticeResult, hwResult] = await Promise.allSettled([
-      Api.getCalendar(),
-      Api.getTimetable(),
-      Api.getNotices(),
-      Api.getAssignments(),
-    ]);
+    const [calResult, timetableResult, examResult, noticeResult, hwResult] =
+      await Promise.allSettled([
+        Api.getCalendar(),
+        Api.getTimetable(),
+        Api.getExams(),
+        Api.getNotices(),
+        Api.getAssignments(),
+      ]);
 
     if (calResult.status === 'fulfilled') {
       state.semester = calResult.value.semester;
@@ -471,6 +497,18 @@
     if (state.semester && timetableEvents.length) {
       state.events = [...state.events, ...timetableEvents];
       buildEventMap();
+    }
+
+    if (examResult.status === 'fulfilled') {
+      state.exams = examResult.value.exams || [];
+      state.examPeriods = examResult.value.periods || [];
+      if (state.semester && state.exams.length) {
+        state.events = [...state.events, ...state.exams];
+        buildEventMap();
+      }
+    } else {
+      state.exams = [];
+      state.examPeriods = [];
     }
 
     if (noticeResult.status === 'fulfilled') {
@@ -1238,6 +1276,34 @@
     document.body.classList.remove('drawer-open');
   }
 
+  function periodTimes() {
+    const source = state.examPeriods || [];
+    const map = new Map(
+      source
+        .filter((item) => Number(item.node) >= 1 && Number(item.node) <= 11)
+        .map((item) => [Number(item.node), item])
+    );
+
+    return Array.from({ length: 11 }, (_, index) => {
+      const node = index + 1;
+      const item = map.get(node);
+      return {
+        node,
+        start: item?.start || DEFAULT_PERIOD_TIMES[index][0],
+        end: item?.end || DEFAULT_PERIOD_TIMES[index][1],
+      };
+    });
+  }
+
+  function periodRange(event) {
+    const match = String(event.time || '').match(/第\s*(\d+)(?:\s*-\s*(\d+))?\s*节/);
+    if (!match) return null;
+    const start = Number(match[1]);
+    const end = Number(match[2] || match[1]);
+    if (!Number.isFinite(start) || start < 1 || start > 11) return null;
+    return { start, end: Math.min(11, Math.max(start, end)) };
+  }
+
   function renderDayCard() {
     if (!state.semester) return;
     const date = parseKey(state.ui.selectedDate);
@@ -1246,23 +1312,98 @@
     const week = weekOf(date);
     const weekLabel = week >= 1 && week <= state.semester.totalWeeks ? `第 ${week} 周` : '假期';
 
-    let eventsHtml = '';
-    if (events.length) {
-      eventsHtml = `<div class="day-events-list">${events
-        .map(
-          (event) => `
-          <button class="day-event cat-${event.category}" type="button" data-event="${event.id}">
-            <span class="day-event-bar"></span>
-            <span class="day-event-info">
-              <span class="day-event-title">${escapeHTML(event.title)}</span>
-              <span class="day-event-meta">${escapeHTML(event.time)}${event.location && event.location !== '—' ? ` · ${escapeHTML(event.location)}` : ''}</span>
-            </span>
-          </button>`
-        )
-        .join('')}</div>`;
-    } else {
-      eventsHtml = `<div class="empty">${icon('calendar')}<p>这一天没有安排</p><small>点击其他日期查看校历事件</small></div>`;
+    const alerts = events.filter((event) => event.category !== 'course');
+    const courses = [];
+    for (const event of events) {
+      if (event.category !== 'course') continue;
+      const range = periodRange(event);
+      if (range) courses.push({ event, ...range });
+      else alerts.push(event);
     }
+
+    alerts.sort((a, b) => compareEvents(a, b));
+    courses.sort((a, b) => a.start - b.start || a.end - b.end);
+
+    const lanes = [];
+    for (const block of courses) {
+      let lane = lanes.findIndex((end) => end <= block.start);
+      if (lane === -1) {
+        lane = lanes.length;
+        lanes.push(block.end);
+      } else {
+        lanes[lane] = block.end;
+      }
+      block.lane = lane;
+    }
+    const laneCount = Math.max(1, lanes.length);
+
+    const alertsHtml = alerts.length
+      ? `<div class="day-alerts">${alerts
+          .map(
+            (event) => `
+            <button class="day-alert cat-${event.category}" type="button" data-event="${event.id}">
+              <span class="day-alert-cat">${CAT_LABEL[event.category] || '事项'}</span>
+              <span class="day-alert-body">
+                <strong>${escapeHTML(event.title)}</strong>
+                <small>${escapeHTML(event.time)}${
+                  event.location && event.location !== '—'
+                    ? ` · ${escapeHTML(event.location)}`
+                    : ''
+                }</small>
+              </span>
+            </button>`
+          )
+          .join('')}</div>`
+      : '';
+
+    const periods = periodTimes();
+    const rowMap = new Map();
+    const rowTemplate = [];
+    const sectionHtml = [];
+    let rowIndex = 1;
+
+    for (const section of PERIOD_SECTIONS) {
+      sectionHtml.push(`
+        <div class="day-section" style="grid-row:${rowIndex};grid-column:1 / -1">
+          <span>${section.label}</span>
+          <small>${section.start}–${section.end} 节</small>
+        </div>`);
+      rowTemplate.push('24px');
+      rowIndex += 1;
+
+      for (let node = section.start; node <= section.end; node += 1) {
+        rowMap.set(node, rowIndex);
+        rowTemplate.push('46px');
+        rowIndex += 1;
+      }
+    }
+
+    const periodHtml = periods
+      .map(
+        (period) => `
+        <div class="day-period" style="grid-row:${rowMap.get(period.node)};grid-column:1">
+          <strong>${period.node}</strong>
+          <small>${period.start}<br>${period.end}</small>
+        </div>`
+      )
+      .join('');
+
+    const courseHtml = courses
+      .map((block) => {
+        const startRow = rowMap.get(block.start);
+        const endRow = rowMap.get(block.end);
+        return `
+        <button
+          class="day-course cat-course"
+          type="button"
+          data-event="${block.event.id}"
+          style="grid-row:${startRow}/${endRow + 1};grid-column:${block.lane + 2}"
+        >
+          <strong>${escapeHTML(block.event.title)}</strong>
+          <small>${escapeHTML(block.event.location || '')}</small>
+        </button>`;
+      })
+      .join('');
 
     $('#dayCard').innerHTML = `
       <div class="day-head">
@@ -1273,7 +1414,12 @@
         </div>
         ${isToday ? '<span class="day-tag">TODAY</span>' : ''}
       </div>
-      ${eventsHtml}
+      ${alertsHtml}
+      <div class="day-timetable" style="grid-template-columns:66px repeat(${laneCount}, minmax(0, 1fr));grid-template-rows:${rowTemplate.join(' ')}">
+        ${sectionHtml.join('')}
+        ${periodHtml}
+        ${courseHtml}
+      </div>
     `;
   }
 

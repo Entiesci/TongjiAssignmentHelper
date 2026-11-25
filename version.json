@@ -1,5 +1,5 @@
 {
-  "version": "ver.0.13",
-  "url": "https://github.com/Entiesci/TongjiAssignmentHelper/releases/tag/ver.0.13",
-  "notes": "首个公开版本。\n\n- 校历、学校通知、作业聚合\n- 同济 / Canvas / 课堂派 / Educoder 自动登录与同步\n- 系统托盘常驻，启动自动同步\n- 同步失败 30 秒后自动重试，最多 3 次\n- Windows 原生通知与点击跳转\n- 启动时检测 Node.js，缺失时提示下载"
+  "version": "ver.0.14",
+  "url": "https://github.com/Entiesci/TongjiAssignmentHelper/releases/tag/ver.0.14",
+  "notes": "本次更新：\n\n- 校历加入考试信息，考试日期、时间、地点一眼可见\n- 右侧选中日期抽屉改为课表样式，按第 1–11 节展示课程\n- 课表按上午 / 下午 / 晚上分组，没课的位置留空\n- 考试、DDL、假期、调课放在课表上方提示\n"
 }

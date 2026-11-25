@@ -146,6 +146,12 @@ export async function autoLoginTongji({ username, password, dataDir }) {
       console.warn('[tongji-timetable]', error.message);
     }
 
+    try {
+      await extractExams(context, dataDir);
+    } catch (error) {
+      console.warn('[tongji-exams]', error.message);
+    }
+
     const cookies = await context.cookies('https://1.tongji.edu.cn');
     const cookie = cookies.map((item) => `${item.name}=${item.value}`).join('; ');
     if (!cookie) throw new Error('自动登录成功但没有读取到 Cookie');
@@ -482,6 +488,109 @@ async function extractTimetable(context, dataDir) {
   return null;
 }
 
+async function extractExams(context, dataDir) {
+  const page = context.pages()[0] || (await context.newPage());
+
+  await page.goto('https://1.tongji.edu.cn/workbench', {
+    waitUntil: 'domcontentloaded',
+    timeout: 60000,
+  });
+  await page.waitForTimeout(2500);
+
+  await page.goto('https://1.tongji.edu.cn/StuExamEnquiries', {
+    waitUntil: 'domcontentloaded',
+    referer: 'https://1.tongji.edu.cn/workbench',
+    timeout: 60000,
+  });
+
+  let payload = null;
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    payload = await page.evaluate(() => {
+      const root = document.querySelector('#app')?.__vue__;
+      if (!root) return null;
+      const seen = new Set();
+      const stack = [root];
+      while (stack.length) {
+        const vm = stack.pop();
+        if (!vm || seen.has(vm)) continue;
+        seen.add(vm);
+        const data = vm.$data || {};
+        if (Array.isArray(data.tableData) && data.tableData.length) {
+          const term = Array.isArray(data.termList) ? data.termList[0] : null;
+          const times = term?.noWeekendWorkTimes || term?.weekendWorkTimes || [];
+          return {
+            rows: data.tableData,
+            periods: times.map((item) => ({
+              node: Number(item.classNode),
+              start: item.beginTime,
+              end: item.endTime,
+            })),
+          };
+        }
+        (vm.$children || []).forEach((child) => stack.push(child));
+      }
+      return null;
+    });
+    if (payload) break;
+    await page.waitForTimeout(1000);
+  }
+
+  if (!payload || !payload.rows.length) return null;
+
+  const exams = [];
+  const undated = [];
+
+  for (const row of payload.rows) {
+    const courseName = String(row.courseName || '').trim();
+    if (!courseName) continue;
+
+    if (!row.examDate || !row.startTime || !row.endTime) {
+      undated.push({
+        title: courseName,
+        remark: row.remark || '考核方式待定',
+        examTime: row.examTime || '',
+      });
+      continue;
+    }
+
+    const date = String(row.examDate).slice(0, 10);
+    const location =
+      row.examSite || row.roomName || row.roomNames || row.roomNameStr || '待定';
+    const time = `${row.startTime}-${row.endTime}`;
+    const description = [
+      row.examTime,
+      location !== '待定' ? location : '',
+      row.remark,
+    ]
+      .filter(Boolean)
+      .join(' · ');
+
+    exams.push({
+      id: `exam-${row.calendarId || 'term'}-${row.newTeachingClassCode || row.courseCode || courseName}-${date}`,
+      date,
+      week: Number(row.weekNumber) || null,
+      title: courseName,
+      category: 'exam',
+      time,
+      location,
+      description,
+      course: courseName,
+      teacher: row.teacherName || row.teacherStr || '',
+    });
+  }
+
+  const snapshot = {
+    generatedAt: new Date().toISOString(),
+    exams,
+    undated,
+    periods: payload.periods.filter((item) => item.node >= 1 && item.node <= 11),
+  };
+
+  fs.mkdirSync(dataDir, { recursive: true });
+  fs.writeFileSync(path.join(dataDir, 'exams.json'), JSON.stringify(snapshot, null, 2), 'utf8');
+  return snapshot;
+}
+
 function stripHtml(value) {
   return String(value || '')
     .replace(/<[^>]+>/g, ' ')
@@ -539,8 +648,18 @@ const SOURCES = {
     },
     async afterLogin(context, credentials, dataDir) {
       const snapshot = await extractTimetable(context, dataDir);
+      let examCount = 0;
+      try {
+        const exams = await extractExams(context, dataDir);
+        examCount = exams?.exams?.length || 0;
+      } catch (error) {
+        console.warn('[tongji-exams]', error.message);
+      }
+
       if (snapshot) {
-        return { message: `登录成功，已同步 ${snapshot.events.length} 条课程` };
+        return {
+          message: `登录成功，已同步 ${snapshot.events.length} 条课程、${examCount} 场考试`,
+        };
       }
       return { message: '登录成功，但未提取到个人课表（可能当前账号无课表权限）' };
     },

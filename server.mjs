@@ -711,6 +711,15 @@ async function handleApi(req, res, url) {
     }
   }
 
+  if (pathname === '/api/exams' && method === 'GET') {
+    try {
+      const raw = fs.readFileSync(path.join(DATA_DIR, 'exams.json'), 'utf8');
+      return json(res, 200, JSON.parse(raw));
+    } catch (error) {
+      return json(res, 200, { exams: [], undated: [], periods: [] });
+    }
+  }
+
   const credentialsMatch = pathname.match(/^\/api\/sources\/([^/]+)\/credentials$/);
   if (credentialsMatch && method === 'POST') {
     const id = credentialsMatch[1];
