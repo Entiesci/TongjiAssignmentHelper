@@ -1957,6 +1957,41 @@ body.drawer-open {
   border-color: var(--ev);
 }
 
+.day-course.has-map {
+  padding-right: 22px;
+  background-image:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--card) 90%, transparent) 0%,
+      color-mix(in srgb, var(--card) 74%, transparent) 52%,
+      color-mix(in srgb, var(--card) 34%, transparent) 100%
+    ),
+    var(--course-map);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.day-course.has-map strong,
+.day-course.has-map small {
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--card) 85%, transparent);
+}
+
+.day-course-pin {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  display: grid;
+  place-items: center;
+  color: var(--ev);
+  opacity: 0.72;
+}
+
+.day-course-pin svg {
+  width: 11px;
+  height: 11px;
+}
+
 .day-course-badge {
   display: inline-block;
   margin-bottom: 3px;

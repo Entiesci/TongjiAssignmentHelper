@@ -1,5 +1,5 @@
 {
-  "version": "ver.0.15",
-  "url": "https://github.com/Entiesci/TongjiAssignmentHelper/releases/tag/ver.0.15",
-  "notes": "本次更新：\n\n- 平台状态移到「同步作业」上方，改为更轻的展示\n- 校历精简为 5 个分类：作业DDL、课程、考试、假期、调课\n- 重新分配分类颜色，课程改为黛蓝、考试深红、调课青绿\n- 考试以红色课程块显示在课表中，并标注「考试」\n"
+  "version": "ver.0.16",
+  "url": "https://github.com/Entiesci/TongjiAssignmentHelper/releases/tag/ver.0.16",
+  "notes": "本次更新：\n\n- 课程块加入上课地点地图背景，只显示对应建筑及附近区域\n- 支持南楼、北楼、衷和楼、四平机房\n- 地图上叠加纸色渐变，保留课程名和地点可读性\n- 地点无法识别时回退到纯色课程块\n"
 }

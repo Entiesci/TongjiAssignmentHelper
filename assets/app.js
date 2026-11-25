@@ -55,6 +55,20 @@
     if (priorityA !== priorityB) return priorityA - priorityB;
     return String(a.time || '').localeCompare(String(b.time || ''));
   }
+  const COURSE_MAPS = [
+    { test: /衷和楼/, src: '/assets/map/zhonghe.jpg' },
+    { test: /四平机房|机房/, src: '/assets/map/siping-lab.jpg' },
+    { test: /^南|南楼/, src: '/assets/map/nanlou.jpg' },
+    { test: /^北|北楼/, src: '/assets/map/beilou.jpg' },
+  ];
+
+  function courseMapFor(location) {
+    const text = String(location || '').trim();
+    if (!text || text === '—') return '';
+    const match = COURSE_MAPS.find((item) => item.test.test(text));
+    return match ? match.src : '';
+  }
+
   const PLATFORM_META = {
     ketangpai: { color: '#F57C00', short: '课' },
     educoder: { color: '#00796B', short: 'E' },
@@ -69,7 +83,7 @@
   const THEME_KEY = 'tongji-hub:theme';
   const DEVELOPER_GITHUB = 'https://github.com/entiesci';
   // 功能更新时同步修改 APP_VERSION、version.json、Release tag 和 zip 文件名；纯补丁不 bump。
-  const APP_VERSION = 'ver.0.15';
+  const APP_VERSION = 'ver.0.16';
   const UPDATE_MANIFEST_URLS = [
     'https://cdn.jsdelivr.net/gh/Entiesci/TongjiAssignmentHelper@main/version.json',
     'https://raw.githubusercontent.com/Entiesci/TongjiAssignmentHelper/main/version.json',
@@ -1419,14 +1433,17 @@
         const meta = isExam
           ? `${block.event.time}${block.event.location && block.event.location !== '—' ? ` · ${block.event.location}` : ''}`
           : block.event.location || '';
+        const mapSrc = isExam ? '' : courseMapFor(block.event.location);
+        const mapStyle = mapSrc ? `;--course-map:url('${mapSrc}')` : '';
         return `
         <button
-          class="day-course cat-${isExam ? 'exam' : 'course'}"
+          class="day-course cat-${isExam ? 'exam' : 'course'}${mapSrc ? ' has-map' : ''}"
           type="button"
           data-event="${block.event.id}"
-          style="grid-row:${startRow}/${endRow + 1};grid-column:${block.lane + 2}"
+          style="grid-row:${startRow}/${endRow + 1};grid-column:${block.lane + 2}${mapStyle}"
         >
           ${isExam ? '<span class="day-course-badge">考试</span>' : ''}
+          ${mapSrc ? `<span class="day-course-pin">${icon('pin')}</span>` : ''}
           <strong>${escapeHTML(block.event.title)}</strong>
           <small>${escapeHTML(meta)}</small>
         </button>`;
