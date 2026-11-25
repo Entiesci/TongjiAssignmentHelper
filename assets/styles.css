@@ -1305,14 +1305,11 @@ img, svg {
   background: var(--ev);
 }
 
-.cat-deadline { --ev: #c2410c; }
-.cat-course { --ev: #6a5a7a; }
-.cat-teaching { --ev: var(--blue); }
-.cat-exam { --ev: var(--red); }
-.cat-holiday { --ev: var(--ochre); }
-.cat-activity { --ev: var(--green); }
-.cat-adjust { --ev: var(--red); }
-.cat-admin { --ev: var(--muted); }
+.cat-deadline { --ev: #c25a32; }
+.cat-course { --ev: #4f6f8f; }
+.cat-exam { --ev: #a83a32; }
+.cat-holiday { --ev: #b08a3e; }
+.cat-adjust { --ev: #4f7d68; }
 
 .cal-weekdays,
 .cal-grid {

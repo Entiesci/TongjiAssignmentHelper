@@ -17,12 +17,9 @@
   const CAT_LABEL = {
     deadline: '作业DDL',
     course: '课程',
-    teaching: '教学',
     exam: '考试',
     holiday: '假期',
-    activity: '活动',
     adjust: '调课',
-    admin: '事务',
   };
   const PERIOD_SECTIONS = [
     { label: '上午', start: 1, end: 4 },
@@ -47,12 +44,9 @@
   const CATEGORY_PRIORITY = {
     deadline: 0,
     holiday: 1,
-    adjust: 2,
     exam: 2,
-    course: 3,
-    teaching: 5,
-    activity: 5,
-    admin: 6,
+    adjust: 3,
+    course: 4,
   };
 
   function compareEvents(a, b) {
@@ -532,6 +526,8 @@
       state.lastSync = null;
     }
 
+    // 只保留当前使用的分类，旧的教学/活动/事务不再展示
+    state.events = state.events.filter((event) => Boolean(CAT_LABEL[event.category]));
     appendAssignmentDeadlines();
     buildEventMap();
 
