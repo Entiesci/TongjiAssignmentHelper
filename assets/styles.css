@@ -2494,10 +2494,6 @@ body.drawer-open {
   padding-bottom: 10px;
 }
 
-.page[data-page="homework"] .stat-strip {
-  border-top: 0;
-}
-
 .stat-strip {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
