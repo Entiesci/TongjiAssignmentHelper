@@ -778,6 +778,41 @@ img, svg {
   font-size: 10px;
 }
 
+.update-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.update-meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+
+.update-notes {
+  max-height: 260px;
+  margin: 0;
+  padding: 14px 16px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink-2);
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.update-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .side-nav {
   margin-top: 54px;
   border-top: 1px solid var(--line-strong);

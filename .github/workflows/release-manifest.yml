@@ -1,0 +1,45 @@
+name: Update release manifest
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  update-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Write version manifest
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_URL: ${{ github.event.release.html_url }}
+          RELEASE_BODY: ${{ github.event.release.body }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+
+          manifest = {
+              "version": os.environ["RELEASE_TAG"],
+              "url": os.environ["RELEASE_URL"],
+              "notes": os.environ.get("RELEASE_BODY", ""),
+          }
+          with open("version.json", "w", encoding="utf-8") as handle:
+              json.dump(manifest, handle, ensure_ascii=False, indent=2)
+              handle.write("\n")
+          PY
+
+      - name: Commit manifest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add version.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "chore: update release manifest for ${{ github.event.release.tag_name }}"
+          git push

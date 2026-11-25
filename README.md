@@ -6,6 +6,15 @@
 
 > 这个版本不再自动回退演示数据。未登录时页面会显示登录墙；推荐在「账号配置」页填写各平台账号密码，后台会自动登录并同步数据。手动 Cookie / Token 作为备用。
 
+### 版本更新检查
+
+网页启动后会通过 jsDelivr 读取 `version.json`，如果版本比当前 `APP_VERSION` 新，就在页面内弹窗显示更新说明和 Release 链接。
+
+- 当前版本：`assets/app.js` 里的 `APP_VERSION`
+- 发布信息：仓库根目录的 `version.json`
+- 发布新 Release 后，`.github/workflows/release-manifest.yml` 会自动更新 `version.json`
+- 如果 GitHub Actions 不可用，发布后手动同步 `version.json` 即可
+
 ---
 
 ## 1. 运行

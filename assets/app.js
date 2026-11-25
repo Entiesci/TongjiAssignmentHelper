@@ -56,6 +56,12 @@
   };
   const THEME_KEY = 'tongji-hub:theme';
   const DEVELOPER_GITHUB = 'https://github.com/entiesci';
+  const APP_VERSION = 'ver.0.13';
+  const UPDATE_MANIFEST_URLS = [
+    'https://cdn.jsdelivr.net/gh/Entiesci/TongjiAssignmentHelper@main/version.json',
+    'https://raw.githubusercontent.com/Entiesci/TongjiAssignmentHelper/main/version.json',
+  ];
+  const UPDATE_NOTICE_KEY = 'tongji-hub:update-notice';
   // 功能保留但暂不开放：隐藏主题按钮，强制浅色
   const THEME_TOGGLE_ENABLED = false;
   const ROUTES = ['calendar', 'notices', 'homework', 'accounts'];
@@ -2514,6 +2520,100 @@
   }
 
   /* ---------------- 账户面板 ---------------- */
+  function versionParts(value) {
+    const text = String(value || '')
+      .trim()
+      .toLowerCase()
+      .replace(/^ver[.\-]?/, '')
+      .replace(/^v/, '');
+    const parts = text
+      .split(/[.\-+]/)
+      .map((part) => Number.parseInt(part, 10))
+      .filter((part) => Number.isFinite(part));
+    return parts.length ? parts : [text];
+  }
+
+  function isNewerVersion(latest, current) {
+    const next = versionParts(latest);
+    const now = versionParts(current);
+    if (typeof next[0] === 'string' || typeof now[0] === 'string') {
+      return String(latest) !== String(current);
+    }
+
+    const length = Math.max(next.length, now.length);
+    for (let index = 0; index < length; index += 1) {
+      const nextPart = next[index] || 0;
+      const nowPart = now[index] || 0;
+      if (nextPart !== nowPart) return nextPart > nowPart;
+    }
+    return false;
+  }
+
+  function openUpdateDialog(latest, manifest) {
+    const notes = String(manifest.notes || '暂无更新说明').trim();
+    const rawUrl = String(manifest.url || '');
+    const releaseUrl = /^https:\/\/github\.com\//.test(rawUrl)
+      ? rawUrl
+      : 'https://github.com/Entiesci/TongjiAssignmentHelper/releases';
+
+    openSheet(`
+      <div class="sheet-head">
+        <div>
+          <p class="kicker">UPDATE AVAILABLE</p>
+          <h2 class="sheet-title">发现新版本 ${escapeHTML(latest)}</h2>
+        </div>
+        <button class="icon-btn" type="button" data-close aria-label="关闭">${icon('close')}</button>
+      </div>
+      <div class="sheet-body update-sheet">
+        <p class="update-meta">当前版本 ${escapeHTML(APP_VERSION)}</p>
+        <pre class="update-notes">${escapeHTML(notes)}</pre>
+        <div class="update-actions">
+          <a class="btn btn-primary" href="${escapeHTML(releaseUrl)}" target="_blank" rel="noreferrer">查看 Release</a>
+          <button class="btn btn-outline" type="button" data-close>稍后再说</button>
+        </div>
+      </div>
+    `);
+  }
+
+  async function checkForUpdates() {
+    try {
+      let manifest = null;
+      for (const url of UPDATE_MANIFEST_URLS) {
+        try {
+          const response = await fetch(`${url}?t=${Date.now()}`, {
+            cache: 'no-store',
+          });
+          if (!response.ok) continue;
+          manifest = await response.json();
+          break;
+        } catch (error) {
+          /* 尝试下一个地址 */
+        }
+      }
+      if (!manifest) return;
+
+      const latest = String(manifest.version || '').trim();
+      if (!latest || !isNewerVersion(latest, APP_VERSION)) return;
+
+      let seen = '';
+      try {
+        seen = localStorage.getItem(UPDATE_NOTICE_KEY) || '';
+      } catch (error) {
+        /* localStorage 不可用时忽略 */
+      }
+      if (seen === latest) return;
+
+      try {
+        localStorage.setItem(UPDATE_NOTICE_KEY, latest);
+      } catch (error) {
+        /* ignore */
+      }
+      openUpdateDialog(latest, manifest);
+    } catch (error) {
+      /* 检查更新失败不影响主流程 */
+    }
+  }
+
   function openCredits() {
     openSheet(`
       <div class="sheet-head">
@@ -2914,6 +3014,7 @@
       initials: '同',
     };
     await enterApp(false);
+    setTimeout(checkForUpdates, 1200);
   }
 
   init();
