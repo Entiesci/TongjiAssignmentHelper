@@ -2086,6 +2086,29 @@ body.drawer-open {
   margin-bottom: 6px;
 }
 
+.notice-head-tools {
+  align-items: center;
+  gap: 12px;
+}
+
+.notice-head-tools .notice-toolbar {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.notice-head-tools .toolbar-right {
+  gap: 14px;
+}
+
+.notice-head-tools .search-box {
+  width: 190px;
+}
+
+.notice-head-tools .search-box input {
+  width: 100%;
+}
+
 .tabs {
   display: flex;
   align-items: center;

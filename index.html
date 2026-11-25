@@ -266,25 +266,24 @@
               <h1 class="page-title">学校通知<span class="title-index">02</span></h1>
               <p class="page-desc"><span id="noticeUnreadCount">0</span> 条未读 · 来自统一身份认证门户</p>
             </div>
-            <div class="page-tools">
+            <div class="page-tools notice-head-tools">
+              <div class="notice-toolbar" id="noticesToolbar">
+                <div class="toolbar-right">
+                  <label class="search-box">
+                    <svg class="icon"><use href="#i-search"/></svg>
+                    <input id="noticeSearch" type="search" placeholder="搜索通知" autocomplete="off">
+                  </label>
+                  <button class="switch" id="unreadOnly" role="switch" aria-checked="false">
+                    <span class="switch-box"></span>
+                    <span>只看未读</span>
+                  </button>
+                </div>
+              </div>
               <button class="btn btn-ghost" id="markAllRead">全部标为已读</button>
             </div>
           </header>
 
           <section class="auth-gate" id="noticeAuthGate" hidden></section>
-
-          <div class="notice-toolbar" id="noticesToolbar">
-            <div class="toolbar-right">
-              <label class="search-box">
-                <svg class="icon"><use href="#i-search"/></svg>
-                <input id="noticeSearch" type="search" placeholder="搜索通知" autocomplete="off">
-              </label>
-              <button class="switch" id="unreadOnly" role="switch" aria-checked="false">
-                <span class="switch-box"></span>
-                <span>只看未读</span>
-              </button>
-            </div>
-          </div>
 
           <div class="notices-layout" id="noticesLayout">
             <div class="notice-list-panel">
