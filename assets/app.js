@@ -1476,6 +1476,46 @@
       .join('');
   }
 
+  let calendarWheelDelta = 0;
+  let calendarWheelTimer = 0;
+
+  function animateMonthChange(direction) {
+    const grid = $('#calendarGrid');
+    if (!grid) return;
+    const className = direction > 0 ? 'month-enter-next' : 'month-enter-prev';
+    grid.classList.remove('month-enter-next', 'month-enter-prev');
+    void grid.offsetWidth;
+    grid.classList.add(className);
+    window.setTimeout(() => grid.classList.remove(className), 280);
+  }
+
+  function shiftCalendarMonth(delta) {
+    closeDayDrawer();
+    state.ui.month = new Date(
+      state.ui.month.getFullYear(),
+      state.ui.month.getMonth() + delta,
+      1
+    );
+    renderCalendar();
+    animateMonthChange(delta);
+  }
+
+  function handleCalendarWheel(event) {
+    if (state.route !== 'calendar') return;
+    if (event.ctrlKey || event.metaKey) return;
+    if (!$('#dayDrawer').hidden) return;
+    if (Math.abs(event.deltaY) < 8) return;
+
+    event.preventDefault();
+    calendarWheelDelta += event.deltaY;
+    window.clearTimeout(calendarWheelTimer);
+    calendarWheelTimer = window.setTimeout(() => {
+      const delta = calendarWheelDelta;
+      calendarWheelDelta = 0;
+      if (Math.abs(delta) >= 8) shiftCalendarMonth(delta > 0 ? 1 : -1);
+    }, 150);
+  }
+
   function jumpToEvent(id) {
     const event = state.events.find((item) => item.id === id);
     if (!event) return;
@@ -3024,16 +3064,9 @@
     $('#aboutBtnMobile')?.addEventListener('click', openCredits);
     $('#sourcesBtnMobile').addEventListener('click', () => openSourcesSheet());
 
-    $('#prevMonth').addEventListener('click', () => {
-      closeDayDrawer();
-      state.ui.month = new Date(state.ui.month.getFullYear(), state.ui.month.getMonth() - 1, 1);
-      renderCalendar();
-    });
-    $('#nextMonth').addEventListener('click', () => {
-      closeDayDrawer();
-      state.ui.month = new Date(state.ui.month.getFullYear(), state.ui.month.getMonth() + 1, 1);
-      renderCalendar();
-    });
+    $('#prevMonth').addEventListener('click', () => shiftCalendarMonth(-1));
+    $('#nextMonth').addEventListener('click', () => shiftCalendarMonth(1));
+    $('#calendarLayout').addEventListener('wheel', handleCalendarWheel, { passive: false });
     $('#calToday').addEventListener('click', () => {
       const now = new Date();
       state.ui.month = new Date(now.getFullYear(), now.getMonth(), 1);
