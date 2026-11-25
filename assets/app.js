@@ -1433,6 +1433,7 @@
           data-event="${block.event.id}"
           style="grid-row:${startRow}/${endRow + 1};grid-column:${block.lane + 2}"
         >
+          ${isExam ? '<span class="day-course-badge">考试</span>' : ''}
           <strong>${escapeHTML(block.event.title)}</strong>
           <small>${escapeHTML(meta)}</small>
         </button>`;

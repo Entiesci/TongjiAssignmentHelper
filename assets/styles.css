@@ -1922,6 +1922,19 @@ body.drawer-open {
   border-color: var(--ev);
 }
 
+.day-course-badge {
+  display: inline-block;
+  margin-bottom: 3px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--red);
+  color: var(--paper);
+  font-family: var(--sans, inherit);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
 .day-course strong {
   display: block;
   overflow: hidden;
