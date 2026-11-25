@@ -1312,7 +1312,10 @@
     const week = weekOf(date);
     const weekLabel = week >= 1 && week <= state.semester.totalWeeks ? `第 ${week} 周` : '假期';
 
-    const alerts = events.filter((event) => event.category !== 'course');
+    const examEvents = events.filter((event) => event.category === 'exam');
+    const alerts = events.filter(
+      (event) => event.category !== 'course' && event.category !== 'exam'
+    );
     const courses = [];
     for (const event of events) {
       if (event.category !== 'course') continue;
@@ -1322,6 +1325,7 @@
     }
 
     alerts.sort((a, b) => compareEvents(a, b));
+    examEvents.sort((a, b) => compareEvents(a, b));
     courses.sort((a, b) => a.start - b.start || a.end - b.end);
 
     const lanes = [];
@@ -1356,11 +1360,35 @@
           .join('')}</div>`
       : '';
 
+    const examHtml = examEvents.length
+      ? `<div class="day-exam-section" style="grid-row:1;grid-column:1 / -1">
+          <div class="day-exam-head"><span>考试</span><small>${examEvents.length} 场</small></div>
+          ${examEvents
+            .map(
+              (event) => `
+              <button class="day-exam-card cat-exam" type="button" data-event="${event.id}">
+                <strong>${escapeHTML(event.title)}</strong>
+                <small>${escapeHTML(event.time)}${
+                  event.location && event.location !== '—'
+                    ? ` · ${escapeHTML(event.location)}`
+                    : ''
+                }</small>
+              </button>`
+            )
+            .join('')}
+        </div>`
+      : '';
+
     const periods = periodTimes();
     const rowMap = new Map();
     const rowTemplate = [];
     const sectionHtml = [];
     let rowIndex = 1;
+
+    if (examEvents.length) {
+      rowTemplate.push('auto');
+      rowIndex = 2;
+    }
 
     for (const section of PERIOD_SECTIONS) {
       sectionHtml.push(`
@@ -1416,6 +1444,7 @@
       </div>
       ${alertsHtml}
       <div class="day-timetable" style="grid-template-columns:66px repeat(${laneCount}, minmax(0, 1fr));grid-template-rows:${rowTemplate.join(' ')}">
+        ${examHtml}
         ${sectionHtml.join('')}
         ${periodHtml}
         ${courseHtml}

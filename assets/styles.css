@@ -1800,6 +1800,63 @@ body.drawer-open {
   border-top: 1px solid var(--line);
 }
 
+.day-exam-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0 12px;
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.day-exam-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--red);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+}
+
+.day-exam-head span {
+  font-family: var(--serif);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+
+.day-exam-head small {
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.day-exam-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--red) 28%, var(--line));
+  border-left: 3px solid var(--red);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--red) 7%, var(--card));
+  text-align: left;
+}
+
+.day-exam-card:hover {
+  border-color: var(--red);
+}
+
+.day-exam-card strong {
+  font-family: var(--serif);
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.day-exam-card small {
+  color: var(--muted);
+  font-size: 8.5px;
+  line-height: 1.5;
+}
+
 .day-section {
   display: flex;
   align-items: center;
