@@ -2079,7 +2079,7 @@ body.drawer-open {
 .notice-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 20px;
   padding-bottom: 11px;
   border-bottom: 1px solid var(--line-strong);

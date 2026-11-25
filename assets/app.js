@@ -55,8 +55,6 @@
     if (priorityA !== priorityB) return priorityA - priorityB;
     return String(a.time || '').localeCompare(String(b.time || ''));
   }
-  const NOTICE_CATS = ['全部', '教务', '学工', '院系', '生活', '活动'];
-  const TAG_CLASS = { 教务: 'tag-jw', 学工: 'tag-xg', 院系: 'tag-yx', 生活: 'tag-sh', 活动: 'tag-hd' };
   const PLATFORM_META = {
     ketangpai: { color: '#F57C00', short: '课' },
     educoder: { color: '#00796B', short: 'E' },
@@ -105,7 +103,6 @@
     ui: {
       month: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
       selectedDate: todayKey(),
-      noticeCat: '全部',
       noticeQuery: '',
       unreadOnly: false,
       activeNotice: null,
@@ -1562,9 +1559,6 @@
     $('#noticesToolbar').hidden = false;
     $('#noticesLayout').hidden = false;
     $('#noticeUnreadCount').textContent = '—';
-    $('#noticeFilters').innerHTML = NOTICE_CATS.map(
-      (cat) => `<button class="tab${cat === '全部' ? ' is-active' : ''}" type="button">${cat}</button>`
-    ).join('');
     $('#noticeList').innerHTML = Array.from(
       { length: 5 },
       () => `
@@ -1588,7 +1582,6 @@
   function filteredNotices() {
     const query = state.ui.noticeQuery.trim().toLowerCase();
     return state.notices.filter((notice) => {
-      if (state.ui.noticeCat !== '全部' && notice.category !== state.ui.noticeCat) return false;
       if (state.ui.unreadOnly && !notice.unread) return false;
       if (query) {
         const haystack = `${notice.title} ${notice.summary} ${notice.source}`.toLowerCase();
@@ -1596,14 +1589,6 @@
       }
       return true;
     });
-  }
-
-  function renderNoticeFilters() {
-    $('#noticeFilters').innerHTML = NOTICE_CATS.map((cat) => {
-      const active = state.ui.noticeCat === cat;
-      const count = cat === '全部' ? state.notices.length : state.notices.filter((n) => n.category === cat).length;
-      return `<button class="tab${active ? ' is-active' : ''}" type="button" role="tab" aria-selected="${active}" data-cat="${cat}">${cat}<span style="opacity:.45;font-size:8.5px;margin-left:4px">${count}</span></button>`;
-    }).join('');
   }
 
   function renderNotices() {
@@ -1629,8 +1614,6 @@
 
     const unread = state.notices.filter((n) => n.unread).length;
     $('#noticeUnreadCount').textContent = String(unread);
-    renderNoticeFilters();
-
     const notices = filteredNotices();
     if (!notices.length) {
       $('#noticeList').innerHTML = `
@@ -1654,7 +1637,6 @@
             <span class="notice-index">${pad(index + 1)}</span>
             <div>
               <div class="notice-top">
-                <span class="tag ${TAG_CLASS[notice.category] || ''}">${notice.category}</span>
                 <span>${escapeHTML(notice.source)}</span>
                 <span>·</span>
                 <time datetime="${notice.publishedAt}">${fmtRelativeTime(notice.publishedAt)}</time>
@@ -1711,7 +1693,6 @@
 
     panel.innerHTML = `
       <div class="detail-head">
-        <span class="tag ${TAG_CLASS[notice.category] || ''}">${notice.category}</span>
         <button class="icon-btn detail-close" type="button" data-detail-close aria-label="关闭详情">${icon('close')}</button>
       </div>
       <h2 class="detail-title">${escapeHTML(notice.title)}</h2>
@@ -3090,13 +3071,6 @@
     $('#upcomingList').addEventListener('click', (event) => {
       const btn = event.target.closest('[data-event]');
       if (btn) jumpToEvent(btn.dataset.event);
-    });
-
-    $('#noticeFilters').addEventListener('click', (event) => {
-      const tab = event.target.closest('[data-cat]');
-      if (!tab) return;
-      state.ui.noticeCat = tab.dataset.cat;
-      renderNotices();
     });
 
     $('#noticeSearch').addEventListener(
