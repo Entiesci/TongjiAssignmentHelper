@@ -2616,6 +2616,23 @@
     if (version) version.textContent = APP_VERSION;
   }
 
+  async function fetchUpdateManifest(url, timeoutMs = 4000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(`${url}?t=${Date.now()}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (error) {
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   async function checkForUpdates(options = {}) {
     const manual = Boolean(options.manual);
     if (manual) setUpdateStatus('正在检查…');
@@ -2623,16 +2640,8 @@
     try {
       let manifest = null;
       for (const url of UPDATE_MANIFEST_URLS) {
-        try {
-          const response = await fetch(`${url}?t=${Date.now()}`, {
-            cache: 'no-store',
-          });
-          if (!response.ok) continue;
-          manifest = await response.json();
-          break;
-        } catch (error) {
-          /* 尝试下一个地址 */
-        }
+        manifest = await fetchUpdateManifest(url);
+        if (manifest) break;
       }
 
       if (!manifest) {
