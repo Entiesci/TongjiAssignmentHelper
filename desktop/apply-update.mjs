@@ -135,6 +135,7 @@ async function main() {
 
   try {
     fs.rmSync(stageDir, { recursive: true, force: true });
+    fs.rmSync(path.join(appDir, '.data', 'update', 'payload.bin'), { force: true });
     fs.rmSync(path.join(appDir, '.data', 'update', 'payload.zip'), { force: true });
   } catch (error) {
     /* ignore */

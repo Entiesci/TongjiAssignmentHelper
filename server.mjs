@@ -1072,6 +1072,30 @@ async function extractZip(zipPath, destDir) {
   });
 }
 
+// 安装程序同时是更新包：带 --extract 时会静默解包自身
+async function extractInstaller(exePath, destDir) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(exePath, ['--extract', destDir], {
+      windowsHide: true,
+      stdio: 'ignore',
+    });
+    child.on('error', reject);
+    child.on('exit', (code) => {
+      if (code === 0) {
+        resolve();
+        return;
+      }
+      let detail = '';
+      try {
+        detail = fs.readFileSync(path.join(destDir, 'extract-error.txt'), 'utf8').trim();
+      } catch (error) {
+        /* ignore */
+      }
+      reject(new Error(detail || `解包失败（退出码 ${code}）`));
+    });
+  });
+}
+
 function spawnUpdater(stageDir, version) {
   const script = path.join(__dirname, 'desktop', 'apply-update.mjs');
   if (!fs.existsSync(script)) throw new Error('缺少更新脚本 apply-update.mjs');
@@ -1109,7 +1133,7 @@ async function runUpdate(url, version) {
     fs.rmSync(UPDATE_DIR, { recursive: true, force: true });
     fs.mkdirSync(UPDATE_DIR, { recursive: true });
 
-    const zipPath = path.join(UPDATE_DIR, 'payload.zip');
+    const zipPath = path.join(UPDATE_DIR, 'payload.bin');
     const response = await fetch(url, { redirect: 'follow' });
     if (!response.ok) throw new Error(`下载失败（HTTP ${response.status}）`);
 
@@ -1121,7 +1145,16 @@ async function runUpdate(url, version) {
     setUpdateState({ state: 'extracting', progress: 100, message: '正在解压更新包' });
     const stageDir = path.join(UPDATE_DIR, 'stage');
     fs.rmSync(stageDir, { recursive: true, force: true });
-    await extractZip(zipPath, stageDir);
+
+    const isZip = buffer[0] === 0x50 && buffer[1] === 0x4b;
+    const isExe = buffer[0] === 0x4d && buffer[1] === 0x5a;
+    if (isZip) {
+      await extractZip(zipPath, stageDir);
+    } else if (isExe) {
+      await extractInstaller(zipPath, stageDir);
+    } else {
+      throw new Error('更新包格式无法识别');
+    }
 
     if (
       !fs.existsSync(path.join(stageDir, 'index.html')) ||

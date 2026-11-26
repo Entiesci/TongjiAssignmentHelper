@@ -16,8 +16,33 @@ namespace TongjiHubSetup
         public const string LogoResource = "TongjiHub.Logo";
 
         [STAThread]
-        private static void Main()
+        private static void Main(string[] args)
         {
+            // 静默解包模式：安装程序同时充当自动更新的更新包
+            //   setup.exe --extract <目录>
+            if (args != null && args.Length >= 2 && string.Equals(args[0], "--extract", StringComparison.OrdinalIgnoreCase))
+            {
+                string target = args[1];
+                try
+                {
+                    Payload.Extract(target, null);
+                    Environment.Exit(0);
+                }
+                catch (Exception error)
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(target);
+                        File.WriteAllText(Path.Combine(target, "extract-error.txt"), error.Message);
+                    }
+                    catch
+                    {
+                    }
+                    Environment.Exit(1);
+                }
+                return;
+            }
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new SetupForm());
@@ -26,6 +51,77 @@ namespace TongjiHubSetup
         public static Stream OpenResource(string name)
         {
             return Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
+        }
+    }
+
+    internal static class Payload
+    {
+        public static void Extract(string target, Action<int, string> progress)
+        {
+            Directory.CreateDirectory(target);
+
+            string temp = Path.Combine(Path.GetTempPath(), "tongji-setup-" + Guid.NewGuid().ToString("N") + ".zip");
+            try
+            {
+                using (Stream source = Program.OpenResource(Program.PayloadResource))
+                {
+                    if (source == null) throw new InvalidOperationException("安装包内容缺失。");
+                    using (FileStream file = File.Create(temp))
+                    {
+                        source.CopyTo(file);
+                    }
+                }
+
+                using (ZipArchive archive = ZipFile.OpenRead(temp))
+                {
+                    int total = archive.Entries.Count;
+                    int index = 0;
+                    string root = Path.GetFullPath(target);
+                    if (!root.EndsWith(Path.DirectorySeparatorChar.ToString()))
+                    {
+                        root += Path.DirectorySeparatorChar;
+                    }
+
+                    foreach (ZipArchiveEntry entry in archive.Entries)
+                    {
+                        index++;
+                        string relative = entry.FullName.Replace('/', Path.DirectorySeparatorChar);
+                        string destination = Path.GetFullPath(Path.Combine(root, relative));
+
+                        if (!destination.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
+                        if (entry.Name.Length == 0)
+                        {
+                            Directory.CreateDirectory(destination);
+                        }
+                        else
+                        {
+                            string folder = Path.GetDirectoryName(destination);
+                            if (!string.IsNullOrEmpty(folder)) Directory.CreateDirectory(folder);
+                            entry.ExtractToFile(destination, true);
+                        }
+
+                        if (progress != null)
+                        {
+                            int percent = (int)(index * 100L / Math.Max(1, total));
+                            progress(percent, entry.FullName);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                try
+                {
+                    if (File.Exists(temp)) File.Delete(temp);
+                }
+                catch
+                {
+                }
+            }
         }
     }
 
@@ -348,70 +444,7 @@ namespace TongjiHubSetup
 
         private static void ExtractAll(string target, Action<int, string> progress)
         {
-            Directory.CreateDirectory(target);
-
-            string temp = Path.Combine(Path.GetTempPath(), "tongji-setup-" + Guid.NewGuid().ToString("N") + ".zip");
-            try
-            {
-                using (Stream source = Program.OpenResource(Program.PayloadResource))
-                {
-                    if (source == null) throw new InvalidOperationException("安装包内容缺失。");
-                    using (FileStream file = File.Create(temp))
-                    {
-                        source.CopyTo(file);
-                    }
-                }
-
-                using (ZipArchive archive = ZipFile.OpenRead(temp))
-                {
-                    int total = archive.Entries.Count;
-                    int index = 0;
-                    string root = Path.GetFullPath(target);
-                    if (!root.EndsWith(Path.DirectorySeparatorChar.ToString()))
-                    {
-                        root += Path.DirectorySeparatorChar;
-                    }
-
-                    foreach (ZipArchiveEntry entry in archive.Entries)
-                    {
-                        index++;
-                        string relative = entry.FullName.Replace('/', Path.DirectorySeparatorChar);
-                        string destination = Path.GetFullPath(Path.Combine(root, relative));
-
-                        if (!destination.StartsWith(root, StringComparison.OrdinalIgnoreCase))
-                        {
-                            continue;
-                        }
-
-                        if (entry.Name.Length == 0)
-                        {
-                            Directory.CreateDirectory(destination);
-                        }
-                        else
-                        {
-                            string folder = Path.GetDirectoryName(destination);
-                            if (!string.IsNullOrEmpty(folder)) Directory.CreateDirectory(folder);
-                            entry.ExtractToFile(destination, true);
-                        }
-
-                        if (progress != null)
-                        {
-                            int percent = (int)(index * 100L / Math.Max(1, total));
-                            progress(percent, entry.FullName);
-                        }
-                    }
-                }
-            }
-            finally
-            {
-                try
-                {
-                    if (File.Exists(temp)) File.Delete(temp);
-                }
-                catch
-                {
-                }
-            }
+            Payload.Extract(target, progress);
         }
 
         private static void CreateShortcuts(string target, bool autostart)
