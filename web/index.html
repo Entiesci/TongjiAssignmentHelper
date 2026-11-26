@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f0e8">
+  <meta name="description" content="同舟 · 校园手账：把同济校历、学校通知和多平台作业收进一个页面。">
+  <title>同舟 · 校园手账</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-head">
+    <a class="brand" href="#top" aria-label="同舟首页">
+      <span class="brand-mark">同</span>
+      <span class="brand-text">
+        <strong>同舟</strong>
+        <small>CAMPUS LEDGER</small>
+      </span>
+    </a>
+
+    <nav class="site-nav" aria-label="页面导航">
+      <a href="#features">功能</a>
+      <a href="#shots">截图</a>
+      <a href="#download">下载</a>
+      <a class="nav-github" href="https://github.com/Entiesci/TongjiAssignmentHelper" target="_blank" rel="noreferrer">GitHub ↗</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap">
+      <div class="hero-copy">
+        <p class="kicker">TONGJI CAMPUS LEDGER <span>/ VER.0.17</span></p>
+        <h1>把校园生活，<br><span class="hero-line">收进一页手账。</span></h1>
+        <p class="hero-lead">
+          校历、学校通知和 Canvas / 课堂派 / Educoder 作业，
+          在一个安静的页面里各就各位。
+        </p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#download">下载桌面版</a>
+          <a class="button button-quiet" href="https://github.com/Entiesci/TongjiAssignmentHelper" target="_blank" rel="noreferrer">查看项目 ↗</a>
+        </div>
+        <p class="hero-note">Windows 10/11 · Node.js 18+ · Edge</p>
+      </div>
+
+      <figure class="hero-shot">
+        <div class="shot-label"><span>MONTH VIEW</span><span>2026.11</span></div>
+        <img src="assets/calendar.jpg" alt="同舟校历界面：月历、课程与考试" width="1285" height="766">
+        <figcaption>校历 · 考试 · 学期进度</figcaption>
+      </figure>
+    </section>
+
+    <section class="features wrap" id="features">
+      <div class="section-head">
+        <p class="kicker">WHAT IT DOES</p>
+        <h2>少翻几个网站，<br>把时间留给更重要的事。</h2>
+      </div>
+
+      <div class="feature-grid">
+        <article class="feature">
+          <span class="feature-no">01</span>
+          <h3>校历与考试</h3>
+          <p>课程、假期、调课、DDL 和考试安排，在同一张月历里看清。</p>
+        </article>
+        <article class="feature">
+          <span class="feature-no">02</span>
+          <h3>学校通知</h3>
+          <p>同步学校门户通知，搜索、只看未读、一键标为已读。</p>
+        </article>
+        <article class="feature">
+          <span class="feature-no">03</span>
+          <h3>多平台作业</h3>
+          <p>Canvas、课堂派、Educoder 作业聚合，完成状态一目了然。</p>
+        </article>
+        <article class="feature">
+          <span class="feature-no">04</span>
+          <h3>课表与地图</h3>
+          <p>右侧日期抽屉按第 1–11 节排课，课程块带上课地点附近的地图。</p>
+        </article>
+        <article class="feature">
+          <span class="feature-no">05</span>
+          <h3>托盘与自动同步</h3>
+          <p>启动时自动同步作业与通知；登录失效会尝试重新登录。</p>
+        </article>
+        <article class="feature">
+          <span class="feature-no">06</span>
+          <h3>桌面通知</h3>
+          <p>未完成作业和同步失败会提醒，点击直接打开作业页。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="shots wrap" id="shots">
+      <div class="section-head section-head-row">
+        <div>
+          <p class="kicker">SCREENS</p>
+          <h2>安静，但信息齐全。</h2>
+        </div>
+        <p class="section-note">以下截图来自实际运行界面</p>
+      </div>
+
+      <div class="shot-grid">
+        <figure class="shot shot-wide">
+          <img src="assets/notices.jpg" alt="同舟学校通知页面" width="1285" height="766" loading="lazy">
+          <figcaption><span>学校通知</span><small>搜索 · 未读筛选 · 通知详情</small></figcaption>
+        </figure>
+        <figure class="shot shot-wide">
+          <img src="assets/timetable.jpg" alt="同舟日期课表：第1到11节和课程地图" width="1285" height="766" loading="lazy">
+          <figcaption><span>日期课表</span><small>第 1–11 节 · 课程地点地图</small></figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="assets/homework.jpg" alt="同舟作业通知页面" width="1285" height="766" loading="lazy">
+          <figcaption><span>作业通知</span><small>三平台聚合 · 完成率</small></figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="assets/settings.jpg" alt="同舟设置页面" width="1285" height="766" loading="lazy">
+          <figcaption><span>设置</span><small>账号 · 检查更新 · 关于</small></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="download wrap" id="download">
+      <div class="download-card">
+        <div class="download-copy">
+          <p class="kicker">DOWNLOAD</p>
+          <h2>同舟桌面版</h2>
+          <p>解压后双击 <code>启动同舟.vbs</code>，首次运行会自动安装依赖。</p>
+          <p class="download-meta">ver.0.17 · Windows 10/11 · Node.js 18+ · Edge</p>
+        </div>
+        <div class="download-actions">
+          <a class="button button-light" href="https://github.com/Entiesci/TongjiAssignmentHelper/releases/latest" target="_blank" rel="noreferrer">下载最新版 ↗</a>
+          <a class="download-link" href="https://github.com/Entiesci/TongjiAssignmentHelper/releases" target="_blank" rel="noreferrer">查看所有版本</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-foot wrap">
+    <div class="foot-brand">
+      <span class="brand-mark">同</span>
+      <div><strong>同舟 · 校园手账</strong><small>为同济学生做的小工具</small></div>
+    </div>
+    <div class="foot-links">
+      <a href="https://github.com/Entiesci/TongjiAssignmentHelper" target="_blank" rel="noreferrer">项目主页</a>
+      <a href="https://github.com/Entiesci" target="_blank" rel="noreferrer">entiesci</a>
+    </div>
+    <p class="foot-note">感谢大肥鱼，感谢同济大学提供的算力支持。</p>
+  </footer>
+
+  <script>
+    document.querySelectorAll('a[href^="#"]').forEach((link) => {
+      link.addEventListener('click', (event) => {
+        const target = document.querySelector(link.getAttribute('href'));
+        if (!target) return;
+        event.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  </script>
+</body>
+</html>
