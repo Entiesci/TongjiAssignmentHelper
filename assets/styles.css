@@ -4610,3 +4610,16 @@ body.drawer-open {
     flex-direction: column;
   }
 }
+
+body::after {
+  content: "";
+  position: fixed;
+  right: -20vw;
+  bottom: -22vh;
+  z-index: 4;
+  width: min(58vw, 820px);
+  aspect-ratio: 154 / 157;
+  background: url("/assets/tongji-white.svg") center / contain no-repeat;
+  opacity: 0.45;
+  pointer-events: none;
+}
