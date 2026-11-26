@@ -66,6 +66,34 @@ try {
   savedCreds = {};
 }
 
+/* 已读通知：持久化到 .data/notices-read.json，重启后仍然有效 */
+const READ_NOTICES_FILE = path.join(DATA_DIR, 'notices-read.json');
+let readNotices = new Set();
+
+try {
+  const saved = JSON.parse(fs.readFileSync(READ_NOTICES_FILE, 'utf8'));
+  if (Array.isArray(saved)) readNotices = new Set(saved.map(String));
+} catch (error) {
+  readNotices = new Set();
+}
+
+function isNoticeRead(id) {
+  return readNotices.has(String(id));
+}
+
+function markNoticeRead(id) {
+  readNotices.add(String(id));
+}
+
+function saveReadNotices() {
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(READ_NOTICES_FILE, JSON.stringify([...readNotices]), 'utf8');
+  } catch (error) {
+    console.warn('[notices-read]', error.message);
+  }
+}
+
 let ketangpaiSnapshot = null;
 try {
   ketangpaiSnapshot = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'ketangpai.json'), 'utf8'));
@@ -946,7 +974,7 @@ async function handleApi(req, res, url) {
       );
       data.notices = data.notices.map((notice) => ({
         ...notice,
-        unread: Boolean(notice.unread) && !session.read.has(notice.id),
+        unread: Boolean(notice.unread) && !isNoticeRead(notice.id),
       }));
       session.lastError.tongji = null;
       return json(res, 200, data);
@@ -960,7 +988,8 @@ async function handleApi(req, res, url) {
     // 只做本地已读标记，不代用户操作学校系统
     try {
       const data = await scrapeTongjiNotices(session.creds.tongji || {});
-      data.notices.forEach((notice) => session.read.add(notice.id));
+      data.notices.forEach((notice) => markNoticeRead(notice.id));
+      saveReadNotices();
       return json(res, 200, { ok: true });
     } catch (error) {
       return json(res, 200, { ok: true });
@@ -969,7 +998,8 @@ async function handleApi(req, res, url) {
 
   const noticeRead = pathname.match(/^\/api\/notices\/([^/]+)\/read$/);
   if (noticeRead && method === 'POST') {
-    session.read.add(decodeURIComponent(noticeRead[1]));
+    markNoticeRead(decodeURIComponent(noticeRead[1]));
+    saveReadNotices();
     return json(res, 200, { ok: true });
   }
 

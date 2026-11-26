@@ -1710,7 +1710,7 @@
           : ''
       }
       <div class="detail-actions">
-        <button class="btn btn-outline" type="button" data-copy-link>复制链接</button>
+        <button class="btn btn-outline" type="button" data-mark-read${notice.unread ? '' : ' disabled'}>已读</button>
         <button class="btn btn-primary" type="button" data-open-source>打开原文 ${icon('external')}</button>
       </div>`;
   }
@@ -1722,14 +1722,7 @@
     state.ui.activeNotice = id;
     state.ui.detailOpen = true;
 
-    if (notice.unread) {
-      notice.unread = false;
-      try {
-        await Api.markNoticeRead(id);
-      } catch (e) {
-        /* 静默失败，下一次同步会恢复 */
-      }
-    }
+    // 打开不自动标为已读，由详情里的「已读」按钮显式标记
     renderNotices();
     updateBadges();
 
@@ -3173,7 +3166,7 @@
       openNotice(row.dataset.notice);
     });
 
-    $('#noticeDetail').addEventListener('click', (event) => {
+    $('#noticeDetail').addEventListener('click', async (event) => {
       if (event.target.closest('[data-detail-close]')) {
         closeNoticeDetail();
         return;
@@ -3183,12 +3176,16 @@
       if (event.target.closest('[data-open-source]')) {
         window.open(notice.url, '_blank', 'noopener');
       }
-      if (event.target.closest('[data-copy-link]')) {
-        const done = () => showToast('原文链接已复制');
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(notice.url).then(done).catch(() => showToast('复制失败，请手动打开原文'));
-        } else {
-          showToast('当前环境不支持自动复制');
+      if (event.target.closest('[data-mark-read]')) {
+        if (!notice.unread) return;
+        notice.unread = false;
+        renderNotices();
+        updateBadges();
+        try {
+          await Api.markNoticeRead(notice.id);
+          showToast('已标为已读');
+        } catch (e) {
+          showToast('标记失败，请稍后重试');
         }
       }
     });
