@@ -4,3 +4,5 @@ node_modules/
 .npm-cache/
 desktop/TongjiTray.log
 启动同舟.lnk
+
+.probe-*
