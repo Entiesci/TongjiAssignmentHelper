@@ -28,7 +28,6 @@
     <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
     <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></symbol>
-    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></symbol>
     <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
     <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></symbol>
     <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5"/><path d="M9 3h6l-1 6 4 4H6l4-4-1-6z"/></symbol>
@@ -38,87 +37,6 @@
     <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z"/></symbol>
     <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></symbol>
   </svg>
-
-  <!-- ==================== 登录 ==================== -->
-  <section class="login" id="loginView">
-    <aside class="login-art">
-      <div class="art-grid" aria-hidden="true"></div>
-      <div class="art-watermark" aria-hidden="true">同舟</div>
-
-      <header class="login-brand">
-        <span class="seal-mark">同</span>
-        <div class="brand-copy">
-          <strong>同舟</strong>
-          <small>CAMPUS LEDGER</small>
-        </div>
-      </header>
-
-      <div class="login-copy">
-        <p class="kicker kicker-light">TONGJI UNIVERSITY · 2026</p>
-        <h1>把校园<br>写成一本<br><em>手账。</em></h1>
-        <p class="login-lead">校历、学校通知与三平台作业，<br>在一个安静的页面里各就各位。</p>
-      </div>
-
-      <div class="art-calendar" aria-hidden="true">
-        <div class="art-cal-head">
-          <span id="artMonth">NOV.</span>
-          <span id="artYear">2026</span>
-        </div>
-        <div class="art-cal-week" id="artWeek"></div>
-        <div class="art-cal-grid" id="artCalGrid"></div>
-        <div class="art-cal-note" id="artCalNote">期中考试周 · 11.16 — 11.20</div>
-      </div>
-
-      <span class="art-seal" aria-hidden="true">济</span>
-
-      <footer class="login-art-foot">
-        <span>同舟共济</span>
-        <span>自强不息</span>
-      </footer>
-    </aside>
-
-    <main class="login-panel">
-      <div class="login-form">
-        <div class="login-form-head">
-          <p class="kicker">SIGN IN</p>
-          <h2>登录校园账户</h2>
-          <p>使用同济大学统一身份认证继续</p>
-        </div>
-
-        <form id="loginForm" novalidate>
-          <div class="field">
-            <label for="loginId">学号 / 工号</label>
-            <input id="loginId" name="studentId" type="text" placeholder="例如 2151234" autocomplete="username" spellcheck="false">
-          </div>
-          <div class="field">
-            <label for="loginPw">密码</label>
-            <div class="field-line">
-              <input id="loginPw" name="password" type="password" placeholder="输入统一身份认证密码" autocomplete="current-password">
-              <button type="button" class="field-action" id="pwToggle">显示</button>
-            </div>
-          </div>
-          <p class="form-error" id="loginError" hidden></p>
-          <div class="form-row">
-            <label class="checkline">
-              <input type="checkbox" id="remember" checked>
-              <span>保持登录</span>
-            </label>
-            <button type="button" class="link-btn" id="forgotLink">忘记密码</button>
-          </div>
-          <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
-            <span>登录</span><span class="btn-arrow">→</span>
-          </button>
-          <button type="button" class="btn btn-outline btn-block" id="demoBtn">使用演示账号</button>
-          <p class="demo-note">演示环境不连接真实系统，任意账号密码均可进入。</p>
-        </form>
-
-        <div class="login-foot">
-          <span>遇到问题？</span>
-          <a href="https://1.tongji.edu.cn" target="_blank" rel="noopener">前往统一身份认证 ↗</a>
-        </div>
-      </div>
-    </main>
-  </section>
 
   <!-- ==================== 应用 ==================== -->
   <div class="shell" id="shell" hidden>

@@ -308,13 +308,7 @@
     applyTheme(isDark ? 'light' : 'dark');
   }
 
-  /* ---------------- 登录 ---------------- */
-  function showLoginError(message) {
-    const el = $('#loginError');
-    el.textContent = message || '';
-    el.hidden = !message;
-  }
-
+  /* ---------------- 通用按钮状态 ---------------- */
   function setBtnBusy(btn, busy, busyText) {
     if (!btn) return;
     if (busy) {
@@ -330,53 +324,7 @@
     }
   }
 
-  function showLogin() {
-    $('#shell').hidden = true;
-    $('#loginView').hidden = false;
-    if (window.innerWidth > 900) $('#loginId').focus();
-  }
-
-  async function handleLogin(event) {
-    event.preventDefault();
-    const studentId = $('#loginId').value.trim();
-    const password = $('#loginPw').value;
-    showLoginError('');
-
-    if (!studentId) {
-      showLoginError('请输入学号或工号。');
-      $('#loginId').focus();
-      return;
-    }
-    if (!password) {
-      showLoginError('请输入密码。');
-      $('#loginPw').focus();
-      return;
-    }
-
-    const btn = $('#loginBtn');
-    setBtnBusy(btn, true, '正在登录…');
-    try {
-      const result = await Api.login(studentId, password);
-      state.user = result.user;
-      await enterApp(true);
-      showToast(`欢迎回来，${state.user.name}`);
-    } catch (error) {
-      showLoginError(error.message || '登录失败，请稍后重试。');
-    } finally {
-      setBtnBusy(btn, false);
-    }
-  }
-
-  async function enterApp(animate) {
-    const loginView = $('#loginView');
-    if (animate) {
-      loginView.style.transition = 'opacity .22s ease';
-      loginView.style.opacity = '0';
-      await wait(200);
-    }
-    loginView.hidden = true;
-    loginView.style.opacity = '';
-    loginView.style.transition = '';
+  async function enterApp() {
     $('#shell').hidden = false;
     updateUserUI();
     setRoute(ROUTES.includes(currentHash()) ? currentHash() : state.route, { replace: true });
@@ -390,29 +338,6 @@
     $('#accountBtnMobile').textContent = initials;
     $('#userName').textContent = state.user.name;
     $('#userMeta').textContent = '设置 · 账号与关于';
-  }
-
-  async function logout() {
-    closeSheet();
-    try {
-      await Api.logout();
-    } catch (e) {
-      /* ignore */
-    }
-    state.user = null;
-    state.notices = [];
-    state.assignments = [];
-    state.exams = [];
-    state.examPeriods = [];
-    state.platforms = [];
-    state.events = [];
-    state.eventMap.clear();
-    state.semester = null;
-    state.ui.activeNotice = null;
-    state.ui.detailOpen = false;
-    $('#loginPw').value = '';
-    showLogin();
-    showToast('已退出登录');
   }
 
   /* ---------------- 路由 ---------------- */
@@ -2968,7 +2893,6 @@
         </p>
       </div>
 
-      <button class="account-logout" type="button" data-logout>${icon('logout')} 退出登录</button>
       `,
       {
         onMount(sheet) {
@@ -2999,7 +2923,6 @@
             });
           });
 
-          sheet.querySelector('[data-logout]').addEventListener('click', logout);
         },
       }
     );
@@ -3020,40 +2943,6 @@
     $('#dialogRoot').innerHTML = '';
     const drawer = $('#dayDrawer');
     document.body.style.overflow = drawer && !drawer.hidden ? 'hidden' : '';
-  }
-
-  function renderArtCalendar() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    $('#artMonth').textContent = MONTH_EN[month];
-    $('#artYear').textContent = String(year);
-    $('#artWeek').innerHTML = WEEKDAYS.map((day) => `<span>${day}</span>`).join('');
-
-    const first = new Date(year, month, 1);
-    const offset = (first.getDay() + 6) % 7;
-    const days = new Date(year, month + 1, 0).getDate();
-    const today = now.getDate();
-    const weekStart = mondayOnOrBefore(now);
-    const markStart = weekStart.getDate();
-    const markEnd = Math.min(days, markStart + 4);
-
-    let html = '';
-    for (let i = 0; i < offset; i += 1) html += '<span></span>';
-    for (let day = 1; day <= days; day += 1) {
-      const classes = [];
-      if (day >= markStart && day <= markEnd) classes.push('is-marked');
-      if (day === today) classes.push('is-today');
-      html += `<span class="${classes.join(' ')}">${day}</span>`;
-    }
-    $('#artCalGrid').innerHTML = html;
-
-    let semesterStart;
-    if (month >= 7) semesterStart = mondayOnOrBefore(new Date(year, 8, 7));
-    else if (month === 0) semesterStart = mondayOnOrBefore(new Date(year - 1, 8, 7));
-    else semesterStart = mondayOnOrBefore(new Date(year, 1, 22));
-    const week = Math.floor((startOfDay(now) - semesterStart) / 86400000 / 7) + 1;
-    $('#artCalNote').textContent = `第 ${week} 周 · ${fmtMD(weekStart)} — ${fmtMD(addDays(weekStart, 6))}`;
   }
 
   /* ---------------- 事件绑定 ---------------- */
@@ -3238,13 +3127,11 @@
   /* ---------------- 启动 ---------------- */
   async function init() {
     applyTheme(THEME_TOGGLE_ENABLED ? storedTheme() : 'light');
-    renderArtCalendar();
     bindEvents();
 
     try {
       await Api.init();
     } catch (error) {
-      $('#loginView').hidden = true;
       $('#shell').hidden = false;
       openSheet(`
         <div class="sheet-head">
