@@ -394,6 +394,48 @@ async function loginSource(session, source) {
   };
 }
 
+async function syncDesktopNotices() {
+  const creds = savedCreds.tongji || {};
+  const canAutoLogin = Boolean(creds.autoLogin && creds.username && creds.password);
+
+  try {
+    let data;
+    try {
+      data = await scrapeTongjiNotices(creds);
+    } catch (error) {
+      if (!(error instanceof AuthError) || !canAutoLogin) throw error;
+
+      const cookie = await autoLoginTongji({
+        username: creds.username,
+        password: creds.password,
+        dataDir: DATA_DIR,
+      });
+      savedCreds.tongji = { ...creds, cookie, autoLogin: true };
+      persistCreds(savedCreds);
+      data = await scrapeTongjiNotices(savedCreds.tongji);
+    }
+
+    const snapshot = { generatedAt: new Date().toISOString(), ...data };
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(
+      path.join(DATA_DIR, 'notices.json'),
+      JSON.stringify(snapshot, null, 2),
+      'utf8'
+    );
+
+    return {
+      ok: true,
+      count: Array.isArray(data.notices) ? data.notices.length : 0,
+      unread: Array.isArray(data.notices)
+        ? data.notices.filter((notice) => notice.unread).length
+        : 0,
+    };
+  } catch (error) {
+    console.warn('[tongji-notices]', error.message);
+    return { ok: false, error: error.message };
+  }
+}
+
 async function runDesktopSync() {
   return withAccountLoginLock('desktop-sync', async () => {
     const warnings = [];
@@ -427,12 +469,14 @@ async function runDesktopSync() {
       data = await scrapeAll(creds);
     } catch (error) {
       if (error instanceof AuthError) {
+        const notices = await syncDesktopNotices();
         return {
           ok: false,
           pending: 0,
           total: 0,
           failures: [...warnings, `${SOURCES[error.source]?.name || error.source}: 未登录`],
           message: '有平台尚未登录，请先在账号配置中登录',
+          notices,
           syncedAt: new Date().toISOString(),
         };
       }
@@ -447,12 +491,14 @@ async function runDesktopSync() {
     });
 
     const pending = data.assignments.filter((assignment) => !assignment.done);
+    const notices = await syncDesktopNotices();
     return {
       ok: true,
       pending: pending.length,
       total: data.assignments.length,
       pendingTitles: pending.map((assignment) => assignment.title).slice(0, 3),
       failures: [...new Set(failures)],
+      notices,
       syncedAt: new Date().toISOString(),
     };
   });
