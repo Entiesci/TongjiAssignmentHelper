@@ -54,12 +54,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File desktop\TongjiTray.ps1
 
 页面检测到新版本时会弹出提示，点「立即更新」后：
 
-1. 服务下载新版本 zip，界面显示下载与解压进度
-2. `desktop\apply-update.mjs` 等旧服务退出后覆盖程序文件
-3. 保留 `.data`（账号、登录态、课表快照）、`node_modules`、`releases` 等目录
-4. 自动重启托盘服务，页面刷新后即为新版本
+1. 服务下载新版安装程序
+2. 自动运行安装程序，并带上 `--dir` 指向当前安装目录
+3. 安装程序停掉旧服务与托盘，解包覆盖文件，再按选择重启
+4. 页面检测到新版本号后自动刷新
 
-更新过程日志写在 `.data\update\apply.log`。
+安装程序会保留 `.data`（账号、登录态、课表快照）等目录，覆盖安装不会丢数据。
 
 ## 找到图标
 

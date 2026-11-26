@@ -2742,7 +2742,7 @@
       <div class="sheet-body update-sheet">
         <div class="update-bar"><i id="updateBarFill"></i></div>
         <p class="update-meta" id="updateStage">准备中…</p>
-        <p class="update-hint">更新完成后页面会自动刷新，不需要手动操作。</p>
+        <p class="update-hint">下载完成后会自动打开安装程序，按提示点「安装」即可。</p>
       </div>
     `);
   }
@@ -2771,8 +2771,7 @@
       return;
     }
 
-    const deadline = Date.now() + 180000;
-    let restarted = false;
+    const deadline = Date.now() + 240000;
 
     while (Date.now() < deadline) {
       await wait(700);
@@ -2785,19 +2784,14 @@
         }
         if (status.state === 'downloading') {
           setFill(status.progress || 4);
-          setStage(`正在下载更新包 ${status.progress || 0}%`);
-        } else if (status.state === 'extracting') {
+          setStage(`正在下载安装程序 ${status.progress || 0}%`);
+        } else if (status.state === 'launching' || status.state === 'launched') {
           setFill(100);
-          setStage('正在解压更新包…');
-        } else if (status.state === 'applying') {
-          setFill(100);
-          setStage('正在替换文件并重启…');
-          restarted = true;
+          setStage('安装程序已启动，请在弹出的窗口点击「安装」');
         }
       } catch (error) {
-        restarted = true;
         setFill(100);
-        setStage('正在替换文件并重启…');
+        setStage('安装程序正在运行…');
       }
 
       try {
@@ -2812,13 +2806,11 @@
           }
         }
       } catch (error) {
-        /* 服务正在重启 */
+        /* 服务可能正在重启 */
       }
     }
 
-    openUpdateError(
-      restarted ? '更新已执行但服务未在预期时间内恢复，请手动重启同舟。' : '更新超时，请稍后重试。'
-    );
+    openUpdateError('等待安装完成超时，请手动运行安装程序。');
   }
 
   function openUpdateError(message) {

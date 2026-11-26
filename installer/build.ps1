@@ -36,7 +36,7 @@ Copy-Item (Join-Path $Root 'assets\*') -Destination (Join-Path $Stage 'assets') 
 
 $desktopFiles = @(
   'README.md', 'TongjiTray.ps1', 'toast.ps1', 'node-missing.ps1',
-  'start-tray.bat', 'start-tray.vbs', 'run-server.vbs', 'apply-update.mjs',
+  'start-tray.bat', 'start-tray.vbs', 'run-server.vbs',
   'install-autostart.bat', 'install-autostart.ps1',
   'uninstall-autostart.bat', 'uninstall-autostart.ps1',
   'open-ui.bat', 'tray.ico', 'tray.png',
@@ -54,6 +54,7 @@ Copy-Item (Join-Path $Root 'desktop\tray.png') -Destination $Logo -Force
   "/win32icon:$(Join-Path $Root 'desktop\tray.ico')" `
   /reference:System.dll `
   /reference:System.Drawing.dll `
+  /reference:System.Management.dll `
   /reference:System.Windows.Forms.dll `
   /reference:System.IO.Compression.dll `
   /reference:System.IO.Compression.FileSystem.dll `

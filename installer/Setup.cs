@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Compression;
+using System.Management;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
@@ -45,7 +46,21 @@ namespace TongjiHubSetup
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new SetupForm());
+            Application.Run(new SetupForm(ParseStartDir(args)));
+        }
+
+        // 自动更新启动安装程序时用 --dir 传入当前安装目录
+        private static string ParseStartDir(string[] args)
+        {
+            if (args == null) return null;
+            for (int i = 0; i < args.Length - 1; i++)
+            {
+                if (string.Equals(args[i], "--dir", StringComparison.OrdinalIgnoreCase))
+                {
+                    return args[i + 1];
+                }
+            }
+            return null;
         }
 
         public static Stream OpenResource(string name)
@@ -101,7 +116,7 @@ namespace TongjiHubSetup
                         {
                             string folder = Path.GetDirectoryName(destination);
                             if (!string.IsNullOrEmpty(folder)) Directory.CreateDirectory(folder);
-                            entry.ExtractToFile(destination, true);
+                            ExtractWithRetry(entry, destination);
                         }
 
                         if (progress != null)
@@ -120,6 +135,27 @@ namespace TongjiHubSetup
                 }
                 catch
                 {
+                }
+            }
+        }
+
+        // 托盘可能正占用 tray.ico 等文件，重试几次；仍失败就跳过，不中断安装
+        private static void ExtractWithRetry(ZipArchiveEntry entry, string destination)
+        {
+            for (int attempt = 0; attempt < 6; attempt++)
+            {
+                try
+                {
+                    entry.ExtractToFile(destination, true);
+                    return;
+                }
+                catch (IOException)
+                {
+                    System.Threading.Thread.Sleep(250);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    System.Threading.Thread.Sleep(250);
                 }
             }
         }
@@ -148,8 +184,11 @@ namespace TongjiHubSetup
         private bool _finished;
         private string _installedPath;
 
-        public SetupForm()
+        private readonly string _startDir;
+
+        public SetupForm(string startDir)
         {
+            _startDir = startDir;
             Text = "同舟 · 安装程序";
             Font = new Font("Microsoft YaHei UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
             BackColor = Paper;
@@ -222,7 +261,7 @@ namespace TongjiHubSetup
 
             _pathBox = new TextBox();
             _pathBox.SetBounds(28, 142, 448, 26);
-            _pathBox.Text = DefaultInstallPath();
+            _pathBox.Text = ResolveInitialPath();
             _pathBox.BorderStyle = BorderStyle.FixedSingle;
             Controls.Add(_pathBox);
 
@@ -235,7 +274,7 @@ namespace TongjiHubSetup
 
             _autostart = new CheckBox();
             _autostart.Text = "开机自动启动（登录 Windows 后在托盘运行）";
-            _autostart.Checked = true;
+            _autostart.Checked = StartupLinkExists();
             _autostart.AutoSize = true;
             _autostart.ForeColor = Ink;
             _autostart.Location = new Point(28, 190);
@@ -296,6 +335,44 @@ namespace TongjiHubSetup
 
             AcceptButton = _install;
             CancelButton = _cancel;
+        }
+
+        private string ResolveInitialPath()
+        {
+            if (!string.IsNullOrEmpty(_startDir))
+            {
+                try
+                {
+                    string full = Path.GetFullPath(_startDir);
+                    if (Directory.Exists(full) && File.Exists(Path.Combine(full, "server.mjs")))
+                    {
+                        return full;
+                    }
+                }
+                catch
+                {
+                }
+            }
+            return DefaultInstallPath();
+        }
+
+        private static string StartupLinkPath()
+        {
+            return Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Startup),
+                "TongjiHub.lnk");
+        }
+
+        private static bool StartupLinkExists()
+        {
+            try
+            {
+                return File.Exists(StartupLinkPath());
+            }
+            catch
+            {
+                return true;
+            }
         }
 
         private static string DefaultInstallPath()
@@ -359,6 +436,9 @@ namespace TongjiHubSetup
                 string error = null;
                 try
                 {
+                    SafeInvoke(delegate { _status.Text = "正在关闭正在运行的同舟…"; });
+                    StopRunningApp();
+
                     ExtractAll(target, delegate(int percent, string name)
                     {
                         SafeInvoke(delegate
@@ -445,6 +525,82 @@ namespace TongjiHubSetup
         private static void ExtractAll(string target, Action<int, string> progress)
         {
             Payload.Extract(target, progress);
+        }
+
+        // 覆盖安装前先停掉正在运行的服务和托盘，避免文件占用
+        private static void StopRunningApp()
+        {
+            try
+            {
+                ProcessStartInfo info = new ProcessStartInfo("netstat", "-ano");
+                info.UseShellExecute = false;
+                info.CreateNoWindow = true;
+                info.RedirectStandardOutput = true;
+
+                using (Process netstat = Process.Start(info))
+                {
+                    string output = netstat.StandardOutput.ReadToEnd();
+                    netstat.WaitForExit(4000);
+
+                    foreach (string rawLine in output.Split('\n'))
+                    {
+                        if (rawLine.IndexOf(":4173", StringComparison.Ordinal) < 0) continue;
+                        if (rawLine.IndexOf("LISTENING", StringComparison.OrdinalIgnoreCase) < 0) continue;
+
+                        string[] parts = rawLine.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length < 5) continue;
+
+                        int pid;
+                        if (!int.TryParse(parts[parts.Length - 1], out pid)) continue;
+                        KillIfNode(pid);
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                ManagementObjectSearcher searcher = new ManagementObjectSearcher(
+                    "SELECT ProcessId, CommandLine FROM Win32_Process WHERE Name = 'powershell.exe'");
+                foreach (ManagementObject item in searcher.Get())
+                {
+                    object commandLine = item["CommandLine"];
+                    if (commandLine == null) continue;
+                    if (commandLine.ToString().IndexOf("TongjiTray.ps1", StringComparison.OrdinalIgnoreCase) < 0) continue;
+
+                    try
+                    {
+                        object pidValue = item["ProcessId"];
+                        if (pidValue == null) continue;
+                        Process tray = Process.GetProcessById(Convert.ToInt32(pidValue));
+                        tray.Kill();
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            System.Threading.Thread.Sleep(400);
+        }
+
+        private static void KillIfNode(int pid)
+        {
+            try
+            {
+                Process target = Process.GetProcessById(pid);
+                if (!string.Equals(target.ProcessName, "node", StringComparison.OrdinalIgnoreCase)) return;
+                target.Kill();
+                target.WaitForExit(3000);
+            }
+            catch
+            {
+            }
         }
 
         private static void CreateShortcuts(string target, bool autostart)

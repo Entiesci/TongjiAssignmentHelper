@@ -1055,74 +1055,12 @@ function setUpdateState(patch) {
   updateState = { ...updateState, ...patch };
 }
 
-async function extractZip(zipPath, destDir) {
-  return new Promise((resolve, reject) => {
-    const quote = (value) => `'${String(value).replace(/'/g, "''")}'`;
-    const command = `Expand-Archive -LiteralPath ${quote(zipPath)} -DestinationPath ${quote(destDir)} -Force`;
-    const child = spawn(
-      'powershell.exe',
-      ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', command],
-      { windowsHide: true }
-    );
-    child.on('error', reject);
-    child.on('exit', (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`解压失败（退出码 ${code}）`));
-    });
-  });
-}
-
-// 安装程序同时是更新包：带 --extract 时会静默解包自身
-async function extractInstaller(exePath, destDir) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(exePath, ['--extract', destDir], {
-      windowsHide: true,
-      stdio: 'ignore',
-    });
-    child.on('error', reject);
-    child.on('exit', (code) => {
-      if (code === 0) {
-        resolve();
-        return;
-      }
-      let detail = '';
-      try {
-        detail = fs.readFileSync(path.join(destDir, 'extract-error.txt'), 'utf8').trim();
-      } catch (error) {
-        /* ignore */
-      }
-      reject(new Error(detail || `解包失败（退出码 ${code}）`));
-    });
-  });
-}
-
-function spawnUpdater(stageDir, version) {
-  const script = path.join(__dirname, 'desktop', 'apply-update.mjs');
-  if (!fs.existsSync(script)) throw new Error('缺少更新脚本 apply-update.mjs');
-
-  const child = spawn(process.execPath, [script, __dirname, stageDir, version], {
-    cwd: __dirname,
-    detached: true,
-    stdio: 'ignore',
-    windowsHide: true,
-  });
-  child.unref();
-
-  setTimeout(() => {
-    try {
-      server.close();
-    } catch (error) {
-      /* ignore */
-    }
-    process.exit(0);
-  }, 700);
-}
-
+// 下载安装程序并直接运行：后续解包、替换、重启都交给安装程序
 async function runUpdate(url, version) {
   updateState = {
     state: 'downloading',
     progress: 0,
-    message: '正在下载更新包',
+    message: '正在下载安装程序',
     version: version || null,
     error: null,
     startedAt: Date.now(),
@@ -1133,38 +1071,31 @@ async function runUpdate(url, version) {
     fs.rmSync(UPDATE_DIR, { recursive: true, force: true });
     fs.mkdirSync(UPDATE_DIR, { recursive: true });
 
-    const zipPath = path.join(UPDATE_DIR, 'payload.bin');
     const response = await fetch(url, { redirect: 'follow' });
     if (!response.ok) throw new Error(`下载失败（HTTP ${response.status}）`);
 
     const buffer = Buffer.from(await response.arrayBuffer());
-    if (buffer.length < 1024) throw new Error('更新包内容异常');
-    fs.writeFileSync(zipPath, buffer);
-    setUpdateState({ progress: 100 });
+    if (buffer.length < 1024) throw new Error('安装包内容异常');
+    if (buffer[0] !== 0x4d || buffer[1] !== 0x5a) throw new Error('安装包格式无法识别');
 
-    setUpdateState({ state: 'extracting', progress: 100, message: '正在解压更新包' });
-    const stageDir = path.join(UPDATE_DIR, 'stage');
-    fs.rmSync(stageDir, { recursive: true, force: true });
+    const setupPath = path.join(UPDATE_DIR, 'tongji-hub-setup.exe');
+    fs.writeFileSync(setupPath, buffer);
+    setUpdateState({ progress: 100, state: 'launching', message: '正在启动安装程序' });
 
-    const isZip = buffer[0] === 0x50 && buffer[1] === 0x4b;
-    const isExe = buffer[0] === 0x4d && buffer[1] === 0x5a;
-    if (isZip) {
-      await extractZip(zipPath, stageDir);
-    } else if (isExe) {
-      await extractInstaller(zipPath, stageDir);
-    } else {
-      throw new Error('更新包格式无法识别');
-    }
+    const child = spawn(setupPath, ['--dir', __dirname], {
+      cwd: UPDATE_DIR,
+      detached: true,
+      stdio: 'ignore',
+      windowsHide: false,
+    });
+    child.unref();
 
-    if (
-      !fs.existsSync(path.join(stageDir, 'index.html')) ||
-      !fs.existsSync(path.join(stageDir, 'server.mjs'))
-    ) {
-      throw new Error('更新包内容不完整');
-    }
-
-    setUpdateState({ state: 'applying', progress: 100, message: '正在替换文件并重启' });
-    spawnUpdater(stageDir, version);
+    setUpdateState({
+      state: 'launched',
+      progress: 100,
+      message: '安装程序已启动，请按提示完成安装',
+      finishedAt: Date.now(),
+    });
   } catch (error) {
     setUpdateState({
       state: 'error',

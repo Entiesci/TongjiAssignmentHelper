@@ -40,6 +40,8 @@ powershell -ExecutionPolicy Bypass -File installer\build.ps1
 ## 自动更新怎么用这个 exe
 
 1. 应用读取 `version.json` 拿到安装程序地址
-2. 下载到 `.data\update\payload.bin`
-3. 识别到 `MZ` 头，就用 `--extract` 静默解包到 `.data\update\stage`
-4. `desktop\apply-update.mjs` 覆盖程序文件并重启
+2. 下载到 `.data\update\tongji-hub-setup.exe`
+3. 直接运行安装程序，并带上 `--dir <当前安装目录>`
+4. 安装程序自己负责停掉旧服务、解包覆盖、按选择重启托盘
+
+应用只负责「下载 + 启动安装程序」，后面的都交给安装程序。
