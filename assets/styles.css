@@ -717,6 +717,8 @@ img, svg {
 
 /* ---------- 5. Shell ---------- */
 .shell {
+  position: relative;
+  z-index: 1;
   min-height: 100vh;
 }
 
@@ -4616,7 +4618,7 @@ body::after {
   position: fixed;
   right: -20vw;
   bottom: -22vh;
-  z-index: 4;
+  z-index: 0;
   width: min(58vw, 820px);
   aspect-ratio: 154 / 157;
   background: url("/assets/tongji-white.svg") center / contain no-repeat;
