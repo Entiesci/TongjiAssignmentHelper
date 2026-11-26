@@ -1,5 +1,5 @@
 {
   "version": "ver.0.17",
-  "url": "https://github.com/Entiesci/TongjiAssignmentHelper/releases/tag/ver.0.17",
+  "url": "https://entiesci.github.io/TongjiAssignmentHelper/releases/tongji-hub-desktop-ver.0.17.zip",
   "notes": "本次更新：\n\n- 托盘启动同步时，先同步作业，再同步学校通知\n- 学校通知登录态失效时自动重新登录\n- 通知同步不发送 Windows 通知，不打扰桌面\n"
 }
