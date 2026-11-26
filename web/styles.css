@@ -45,6 +45,29 @@ body::before {
   background-size: 7px 7px;
 }
 
+body::after {
+  content: "";
+  position: fixed;
+  right: -3vw;
+  bottom: -4vh;
+  z-index: 0;
+  width: min(34vw, 520px);
+  aspect-ratio: 154 / 157;
+  background: url("assets/tongji-white.svg") center / contain no-repeat;
+  opacity: 0.62;
+  filter:
+    drop-shadow(0 0 1px rgba(28, 30, 29, 0.52))
+    drop-shadow(0 5px 18px rgba(28, 30, 29, 0.16));
+  pointer-events: none;
+}
+
+.site-head,
+main,
+.site-foot {
+  position: relative;
+  z-index: 1;
+}
+
 a { color: inherit; text-decoration: none; }
 img { display: block; max-width: 100%; }
 h1, h2, h3, p, figure { margin: 0; }
@@ -568,6 +591,13 @@ section { scroll-margin-top: 86px; }
 }
 
 @media (max-width: 680px) {
+  body::after {
+    right: -10vw;
+    bottom: -2vh;
+    width: 52vw;
+    opacity: 0.55;
+  }
+
   .wrap,
   .site-head { width: calc(100% - 30px); }
 
