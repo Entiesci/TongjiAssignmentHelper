@@ -258,6 +258,16 @@ h1, h2, h3, p, figure { margin: 0; }
   color: var(--ink);
 }
 
+.download-quiet {
+  border-color: rgba(244, 240, 232, 0.34);
+  color: var(--paper);
+  background: transparent;
+}
+
+.download-quiet:hover {
+  background: rgba(244, 240, 232, 0.1);
+}
+
 .hero-shot {
   position: relative;
   padding: 12px;
