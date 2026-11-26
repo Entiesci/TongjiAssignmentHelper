@@ -2953,7 +2953,7 @@
       <div class="sheet-body about-sheet">
         <p>感谢开发者 <strong>entiesci</strong>，把校历、学校通知和作业收进同一个安静的页面。</p>
         <a class="btn btn-outline" href="${DEVELOPER_GITHUB}" target="_blank" rel="noreferrer">github.com/entiesci</a>
-        <p>也感谢 <strong>大肥鱼</strong> 的支持与帮助。</p>
+        <p>使用同济大学 AGI 平台技术。</p>
         <p class="about-note">感谢同济大学提供的算力支持。</p>
       </div>
     `);

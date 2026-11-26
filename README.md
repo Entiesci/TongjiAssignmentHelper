@@ -95,7 +95,7 @@ Windows 11 可能把图标收在右下角 `^` 里。
 ## 致谢
 
 - 开发者：entiesci — <https://github.com/entiesci>
-- 大肥鱼
+- 使用同济大学 AGI 平台技术
 - 同济大学提供的算力支持
 
 宣发文见 [PROMO.md](PROMO.md)。
