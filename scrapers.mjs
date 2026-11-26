@@ -590,7 +590,7 @@ export async function scrapeCanvas({
   for (const course of matched) {
     try {
       const response = await request(
-        `${base}/api/v1/courses/${course.id}/assignments?per_page=100&order_by=due_at&include[]=submission`,
+        `${base}/api/v1/courses/${course.id}/assignments?per_page=100&order_by=due_at&include[]=submission&include[]=all_dates`,
         requestOptions
       );
       if (!Array.isArray(response.json)) {
@@ -603,6 +603,7 @@ export async function scrapeCanvas({
       response.json.forEach((assignment) => {
         if (!assignment || !assignment.name) return;
         const submission = assignment.submission || {};
+        const firstDate = Array.isArray(assignment.all_dates) ? assignment.all_dates[0] || {} : {};
         let status = 'pending';
         if (submission.workflow_state === 'submitted') status = 'submitted';
         if (submission.workflow_state === 'graded' || submission.score !== null) status = 'graded';
@@ -612,7 +613,14 @@ export async function scrapeCanvas({
           course: course.name || course.course_code || 'Canvas 课程',
           title: assignment.name,
           description: textOf(assignment.description) || '无详细说明',
-          dueAt: toIso(assignment.due_at) || new Date().toISOString(),
+          startAt: toIso(assignment.unlock_at) || toIso(firstDate.unlock_at) || null,
+          dueAt: toIso(assignment.due_at) || toIso(firstDate.due_at) || new Date().toISOString(),
+          endAt:
+            toIso(assignment.lock_at) ||
+            toIso(firstDate.lock_at) ||
+            toIso(assignment.due_at) ||
+            toIso(firstDate.due_at) ||
+            null,
           status,
           done: status !== 'pending',
           score: submission.score ?? null,

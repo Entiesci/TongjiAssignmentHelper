@@ -3041,6 +3041,29 @@ body.drawer-open {
   height: 11px;
 }
 
+.hw-window {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.hw-window small {
+  color: var(--muted);
+  font-size: 8px;
+  letter-spacing: 0.04em;
+}
+
+.hw-window-arrow {
+  color: var(--line-strong);
+  font-size: 9px;
+}
+
+.hw-row.is-overdue .hw-window:last-of-type {
+  color: var(--red);
+  font-weight: 600;
+}
+
 .hw-row.is-overdue .hw-due time {
   color: var(--red);
   font-weight: 600;

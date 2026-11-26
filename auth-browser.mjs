@@ -601,6 +601,7 @@ function stripHtml(value) {
 function mapCanvasAssignments(course, assignments) {
   return assignments.map((assignment) => {
     const submission = assignment.submission || {};
+    const firstDate = Array.isArray(assignment.all_dates) ? assignment.all_dates[0] || {} : {};
     let status = 'pending';
     if (submission.workflow_state === 'submitted') status = 'submitted';
     if (submission.workflow_state === 'graded' || submission.score != null) status = 'graded';
@@ -611,7 +612,9 @@ function mapCanvasAssignments(course, assignments) {
       course: course.name || course.course_code || 'Canvas 课程',
       title: assignment.name,
       description: stripHtml(assignment.description) || '无详细说明',
-      dueAt: assignment.due_at || new Date().toISOString(),
+      startAt: assignment.unlock_at || firstDate.unlock_at || null,
+      dueAt: assignment.due_at || firstDate.due_at || new Date().toISOString(),
+      endAt: assignment.lock_at || firstDate.lock_at || assignment.due_at || firstDate.due_at || null,
       status,
       done: status !== 'pending',
       score: submission.score ?? null,
@@ -979,7 +982,7 @@ const SOURCES = {
           const items = [];
           for (const course of matched) {
             const assignmentsResponse = await fetch(
-              `/api/v1/courses/${course.id}/assignments?per_page=100&order_by=due_at&include[]=submission`,
+              `/api/v1/courses/${course.id}/assignments?per_page=100&order_by=due_at&include[]=submission&include[]=all_dates`,
               { credentials: 'include' }
             );
             if (!assignmentsResponse.ok) continue;

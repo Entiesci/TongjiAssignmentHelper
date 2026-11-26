@@ -198,6 +198,13 @@
     return `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日 ${fmtHM(d)}`;
   }
 
+  function fmtWindowTime(isoStr) {
+    if (!isoStr) return '不限';
+    const d = new Date(isoStr);
+    if (Number.isNaN(d.getTime())) return '不限';
+    return `${d.getMonth() + 1} 月 ${d.getDate()} 日 ${fmtHM(d)}`;
+  }
+
   function fmtRelativeTime(isoStr) {
     const d = new Date(isoStr);
     const diff = Date.now() - d.getTime();
@@ -1929,6 +1936,17 @@
     const status = statusInfo(assignment);
     const isDone = assignment.done;
     const isOverdue = !isDone && due.overdue;
+    const isCanvas = assignment.platform === 'canvas';
+    const hasStart = Boolean(assignment.startAt);
+    const windowHtml = isCanvas
+      ? `${
+          hasStart
+            ? `<span class="hw-window"><small>开始</small>${escapeHTML(fmtWindowTime(assignment.startAt))}</span>
+               <span class="hw-window-arrow">→</span>`
+            : ''
+        }
+         <span class="hw-window"><small>截止</small>${escapeHTML(fmtWindowTime(assignment.endAt || assignment.dueAt))}</span>`
+      : `<time datetime="${assignment.dueAt}">${due.text}</time>`;
 
     return `
       <article class="hw-row${isDone ? ' is-done' : ''}${isOverdue ? ' is-overdue' : ''}" data-assignment="${assignment.id}" tabindex="0" role="button" aria-label="${escapeHTML(assignment.title)}">
@@ -1945,7 +1963,7 @@
           <p class="hw-desc">${escapeHTML(assignment.description)}</p>
           <div class="hw-due">
             ${icon('clock')}
-            <time datetime="${assignment.dueAt}">${due.text}</time>
+            ${windowHtml}
             ${assignment.priority === 'high' && !isDone ? '<span class="hw-priority">优先</span>' : ''}
             ${assignment.status === 'graded' && assignment.score != null ? `<span class="hw-score">得分 ${assignment.score}</span>` : ''}
           </div>
