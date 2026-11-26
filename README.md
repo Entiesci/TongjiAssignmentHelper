@@ -18,7 +18,7 @@
 
 ### 方式一：安装程序（推荐）
 
-双击 `tongji-hub-setup-ver.0.18.exe`：
+双击 `tongji-hub-setup-ver.0.19.exe`：
 
 1. 选择安装位置（默认 `%LOCALAPPDATA%\Programs\TongjiHub`）
 2. 决定是否开机自动启动
@@ -76,7 +76,7 @@ Windows 11 可能把图标收在右下角 `^` 里。
 
 ## 版本
 
-当前版本：`ver.0.18`。
+当前版本：`ver.0.19`。
 
 功能更新升级到下一个 `ver.0.xx`；纯补丁不单独升级版本。发布包放在 `releases/`。
 

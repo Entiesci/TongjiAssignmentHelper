@@ -1,5 +1,5 @@
 {
-  "version": "ver.0.18",
-  "url": "https://entiesci.github.io/TongjiAssignmentHelper/releases/tongji-hub-setup-ver.0.18.exe",
-  "notes": "本次更新：\n\n- 应用内自动更新：检测到新版本后可一键下载并替换文件\n- 更新过程显示下载与解压进度，完成后自动刷新页面\n- 更新时保留账号密码、登录态和课表快照\n- 新增单文件安装程序，可选安装位置与开机启动\n- 应用与介绍页图标换成校徽印章「同」\n"
+  "version": "ver.0.19",
+  "url": "https://entiesci.github.io/TongjiAssignmentHelper/releases/tongji-hub-setup-ver.0.19.exe",
+  "notes": "本次更新：\n\n- 更新流程简化：点「立即更新」后自动下载并运行安装程序\n- 安装程序自动带入当前安装目录，一键覆盖安装\n- 覆盖安装前自动关闭正在运行的服务与托盘，避免文件占用\n- 安装过程保留账号密码、登录态和课表快照\n"
 }
