@@ -103,6 +103,7 @@ h1, h2, h3, p, figure { margin: 0; }
   place-items: center;
   width: 32px;
   height: 32px;
+  overflow: hidden;
   border-radius: 5px;
   background: var(--red);
   color: #fff8ec;
@@ -110,6 +111,12 @@ h1, h2, h3, p, figure { margin: 0; }
   font-size: 18px;
   font-weight: 600;
   line-height: 1;
+}
+
+.brand-mark img {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .brand-text {
