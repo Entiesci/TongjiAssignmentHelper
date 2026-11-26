@@ -2383,7 +2383,7 @@
     } finally {
       state.loginBusy = false;
       setAccountLoginBusy(false);
-      setProgress('全部自动登录', 0);
+      setProgress('全部保存并登录', 0);
       if (button) button.disabled = false;
     }
   }
