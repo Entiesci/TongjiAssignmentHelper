@@ -36,7 +36,7 @@ Copy-Item (Join-Path $Root 'assets\*') -Destination (Join-Path $Stage 'assets') 
 
 $desktopFiles = @(
   'README.md', 'TongjiTray.ps1', 'toast.ps1', 'node-missing.ps1',
-  'start-tray.bat', 'start-tray.vbs', 'run-server.vbs',
+  'start-tray.bat', 'start-tray.vbs', 'run-server.vbs', 'apply-update.mjs',
   'install-autostart.bat', 'install-autostart.ps1',
   'uninstall-autostart.bat', 'uninstall-autostart.ps1',
   'open-ui.bat', 'tray.ico', 'tray.png',

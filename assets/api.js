@@ -73,6 +73,9 @@
   const getAssignments = () => request('/api/assignments');
   const syncAssignments = () => request('/api/assignments/sync', { method: 'POST' });
   const getSyncStatus = () => request('/api/sync/status');
+  const applyUpdate = (payload) =>
+    request('/api/update/apply', { method: 'POST', body: JSON.stringify(payload) });
+  const getUpdateStatus = () => request('/api/update/status');
 
   const markNoticeRead = (id) =>
     request(`/api/notices/${encodeURIComponent(id)}/read`, { method: 'POST' });
@@ -103,6 +106,8 @@
     getAssignments,
     syncAssignments,
     getSyncStatus,
+    applyUpdate,
+    getUpdateStatus,
     markNoticeRead,
     markAllNoticesRead,
     setAssignmentDone,

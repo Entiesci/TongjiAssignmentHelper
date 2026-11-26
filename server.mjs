@@ -13,6 +13,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
   AuthError,
@@ -29,6 +30,34 @@ const HOST = process.env.HOST || '127.0.0.1';
 const SESSION_TTL = 24 * 60 * 60 * 1000;
 const DATA_DIR = path.join(__dirname, '.data');
 const CREDS_FILE = path.join(DATA_DIR, 'credentials.json');
+const UPDATE_DIR = path.join(DATA_DIR, 'update');
+
+let appVersion = '';
+try {
+  appVersion = JSON.parse(fs.readFileSync(path.join(__dirname, 'version.json'), 'utf8')).version || '';
+} catch (error) {
+  appVersion = '';
+}
+
+const UPDATE_HOSTS = [
+  'entiesci.github.io',
+  'github.com',
+  'objects.githubusercontent.com',
+  'raw.githubusercontent.com',
+  'cdn.jsdelivr.net',
+  '127.0.0.1',
+  'localhost',
+];
+
+let updateState = {
+  state: 'idle',
+  progress: 0,
+  message: '',
+  version: null,
+  error: null,
+  startedAt: 0,
+  finishedAt: 0,
+};
 
 let savedCreds = {};
 try {
@@ -575,7 +604,52 @@ async function handleApi(req, res, url) {
   const method = req.method || 'GET';
 
   if (pathname === '/api/health' && method === 'GET') {
-    return json(res, 200, { ok: true, mode: 'live', now: new Date().toISOString() });
+    return json(res, 200, {
+      ok: true,
+      mode: 'live',
+      version: appVersion,
+      now: new Date().toISOString(),
+    });
+  }
+
+  if (pathname === '/api/update/status' && method === 'GET') {
+    return json(res, 200, { ...updateState, currentVersion: appVersion });
+  }
+
+  if (pathname === '/api/update/apply' && method === 'POST') {
+    let body;
+    try {
+      body = await readBody(req);
+    } catch (error) {
+      return json(res, 400, { message: error.message });
+    }
+
+    if (updateState.state === 'downloading' || updateState.state === 'extracting' || updateState.state === 'applying') {
+      return json(res, 409, { message: '已有更新正在进行' });
+    }
+
+    const url = String(body.url || '').trim();
+    const version = String(body.version || '').trim();
+    if (!url) return json(res, 400, { message: '缺少更新地址' });
+
+    let parsed;
+    try {
+      parsed = new URL(url);
+    } catch (error) {
+      return json(res, 400, { message: '更新地址无效' });
+    }
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+      return json(res, 400, { message: '更新地址无效' });
+    }
+    if (!UPDATE_HOSTS.includes(parsed.hostname)) {
+      return json(res, 400, { message: '不允许从该地址更新' });
+    }
+
+    runUpdate(url, version).catch((error) => {
+      console.error('[update]', error);
+    });
+
+    return json(res, 200, { ok: true, version });
   }
 
   if (pathname === '/api/sync/status' && method === 'GET') {
@@ -973,6 +1047,101 @@ async function handleApi(req, res, url) {
   }
 
   return json(res, 404, { message: '接口不存在' });
+}
+
+/* ---------------- 自动更新 ---------------- */
+
+function setUpdateState(patch) {
+  updateState = { ...updateState, ...patch };
+}
+
+async function extractZip(zipPath, destDir) {
+  return new Promise((resolve, reject) => {
+    const quote = (value) => `'${String(value).replace(/'/g, "''")}'`;
+    const command = `Expand-Archive -LiteralPath ${quote(zipPath)} -DestinationPath ${quote(destDir)} -Force`;
+    const child = spawn(
+      'powershell.exe',
+      ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', command],
+      { windowsHide: true }
+    );
+    child.on('error', reject);
+    child.on('exit', (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`解压失败（退出码 ${code}）`));
+    });
+  });
+}
+
+function spawnUpdater(stageDir, version) {
+  const script = path.join(__dirname, 'desktop', 'apply-update.mjs');
+  if (!fs.existsSync(script)) throw new Error('缺少更新脚本 apply-update.mjs');
+
+  const child = spawn(process.execPath, [script, __dirname, stageDir, version], {
+    cwd: __dirname,
+    detached: true,
+    stdio: 'ignore',
+    windowsHide: true,
+  });
+  child.unref();
+
+  setTimeout(() => {
+    try {
+      server.close();
+    } catch (error) {
+      /* ignore */
+    }
+    process.exit(0);
+  }, 700);
+}
+
+async function runUpdate(url, version) {
+  updateState = {
+    state: 'downloading',
+    progress: 0,
+    message: '正在下载更新包',
+    version: version || null,
+    error: null,
+    startedAt: Date.now(),
+    finishedAt: 0,
+  };
+
+  try {
+    fs.rmSync(UPDATE_DIR, { recursive: true, force: true });
+    fs.mkdirSync(UPDATE_DIR, { recursive: true });
+
+    const zipPath = path.join(UPDATE_DIR, 'payload.zip');
+    const response = await fetch(url, { redirect: 'follow' });
+    if (!response.ok) throw new Error(`下载失败（HTTP ${response.status}）`);
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    if (buffer.length < 1024) throw new Error('更新包内容异常');
+    fs.writeFileSync(zipPath, buffer);
+    setUpdateState({ progress: 100 });
+
+    setUpdateState({ state: 'extracting', progress: 100, message: '正在解压更新包' });
+    const stageDir = path.join(UPDATE_DIR, 'stage');
+    fs.rmSync(stageDir, { recursive: true, force: true });
+    await extractZip(zipPath, stageDir);
+
+    if (
+      !fs.existsSync(path.join(stageDir, 'index.html')) ||
+      !fs.existsSync(path.join(stageDir, 'server.mjs'))
+    ) {
+      throw new Error('更新包内容不完整');
+    }
+
+    setUpdateState({ state: 'applying', progress: 100, message: '正在替换文件并重启' });
+    spawnUpdater(stageDir, version);
+  } catch (error) {
+    setUpdateState({
+      state: 'error',
+      progress: 0,
+      message: error.message,
+      error: error.message,
+      finishedAt: Date.now(),
+    });
+    console.error('[update]', error.message);
+  }
 }
 
 const server = http.createServer(async (req, res) => {

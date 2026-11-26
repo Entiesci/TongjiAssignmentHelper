@@ -822,6 +822,37 @@ img, svg {
   gap: 10px;
 }
 
+.update-bar {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--line);
+}
+
+.update-bar i {
+  display: block;
+  width: 3%;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--red);
+  transition: width 0.3s ease;
+}
+
+.update-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+.btn-quiet {
+  color: var(--muted);
+}
+
+.btn-quiet:hover {
+  color: var(--ink);
+}
+
 .side-nav {
   margin-top: 54px;
   border-top: 1px solid var(--line-strong);

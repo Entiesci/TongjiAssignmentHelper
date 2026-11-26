@@ -86,7 +86,7 @@
   const THEME_KEY = 'tongji-hub:theme';
   const DEVELOPER_GITHUB = 'https://github.com/entiesci';
   // 功能更新时同步修改 APP_VERSION、version.json、Release tag 和 zip 文件名；纯补丁不 bump。
-  const APP_VERSION = 'ver.0.17';
+  const APP_VERSION = 'ver.0.18';
   const UPDATE_MANIFEST_URLS = [
     'https://cdn.jsdelivr.net/gh/Entiesci/TongjiAssignmentHelper@main/version.json',
     'https://raw.githubusercontent.com/Entiesci/TongjiAssignmentHelper/main/version.json',
@@ -2731,6 +2731,116 @@
     return false;
   }
 
+  function updateProgressSheet(latest) {
+    openSheet(`
+      <div class="sheet-head">
+        <div>
+          <p class="kicker">UPDATING</p>
+          <h2 class="sheet-title">正在更新到 ${escapeHTML(latest)}</h2>
+        </div>
+      </div>
+      <div class="sheet-body update-sheet">
+        <div class="update-bar"><i id="updateBarFill"></i></div>
+        <p class="update-meta" id="updateStage">准备中…</p>
+        <p class="update-hint">更新完成后页面会自动刷新，不需要手动操作。</p>
+      </div>
+    `);
+  }
+
+  async function runUpdate(latest, manifest) {
+    const url = String(manifest.url || '').trim();
+    if (!/^https?:\/\//i.test(url)) {
+      showToast('更新地址无效，请稍后重试');
+      return;
+    }
+
+    updateProgressSheet(latest);
+    const fill = $('#updateBarFill');
+    const stage = $('#updateStage');
+    const setFill = (percent) => {
+      if (fill) fill.style.width = `${Math.max(3, Math.min(100, percent))}%`;
+    };
+    const setStage = (text) => {
+      if (stage) stage.textContent = text;
+    };
+
+    try {
+      await Api.applyUpdate({ url, version: latest });
+    } catch (error) {
+      openUpdateError(error.message || '无法开始更新');
+      return;
+    }
+
+    const deadline = Date.now() + 180000;
+    let restarted = false;
+
+    while (Date.now() < deadline) {
+      await wait(700);
+
+      try {
+        const status = await Api.getUpdateStatus();
+        if (status.state === 'error') {
+          openUpdateError(status.message || '更新失败');
+          return;
+        }
+        if (status.state === 'downloading') {
+          setFill(status.progress || 4);
+          setStage(`正在下载更新包 ${status.progress || 0}%`);
+        } else if (status.state === 'extracting') {
+          setFill(100);
+          setStage('正在解压更新包…');
+        } else if (status.state === 'applying') {
+          setFill(100);
+          setStage('正在替换文件并重启…');
+          restarted = true;
+        }
+      } catch (error) {
+        restarted = true;
+        setFill(100);
+        setStage('正在替换文件并重启…');
+      }
+
+      try {
+        const response = await fetch('/api/health', { cache: 'no-store' });
+        if (response.ok) {
+          const health = await response.json();
+          if (health && health.ok && health.version === latest) {
+            setFill(100);
+            setStage(`已更新到 ${latest}，正在刷新页面…`);
+            setTimeout(() => location.reload(), 1200);
+            return;
+          }
+        }
+      } catch (error) {
+        /* 服务正在重启 */
+      }
+    }
+
+    openUpdateError(
+      restarted ? '更新已执行但服务未在预期时间内恢复，请手动重启同舟。' : '更新超时，请稍后重试。'
+    );
+  }
+
+  function openUpdateError(message) {
+    openSheet(`
+      <div class="sheet-head">
+        <div>
+          <p class="kicker">UPDATE FAILED</p>
+          <h2 class="sheet-title">更新未完成</h2>
+        </div>
+        <button class="icon-btn" type="button" data-close aria-label="关闭">${icon('close')}</button>
+      </div>
+      <div class="sheet-body update-sheet">
+        <p class="update-meta">${escapeHTML(message)}</p>
+        <p class="update-hint">也可以手动下载安装包覆盖安装。</p>
+        <div class="update-actions">
+          <a class="btn btn-outline" href="https://github.com/Entiesci/TongjiAssignmentHelper/releases" target="_blank" rel="noreferrer">手动下载</a>
+          <button class="btn btn-primary" type="button" data-close>知道了</button>
+        </div>
+      </div>
+    `);
+  }
+
   function openUpdateDialog(latest, manifest) {
     const notes = String(manifest.notes || '暂无更新说明').trim();
     const rawUrl = String(manifest.url || '');
@@ -2750,11 +2860,20 @@
         <p class="update-meta">当前版本 ${escapeHTML(APP_VERSION)}</p>
         <pre class="update-notes">${escapeHTML(notes)}</pre>
         <div class="update-actions">
-          <a class="btn btn-primary" href="${escapeHTML(releaseUrl)}" target="_blank" rel="noreferrer">查看 Release</a>
-          <button class="btn btn-outline" type="button" data-close>稍后再说</button>
+          <button class="btn btn-primary" type="button" id="updateNowBtn">立即更新</button>
+          <a class="btn btn-outline" href="${escapeHTML(releaseUrl)}" target="_blank" rel="noreferrer">查看 Release</a>
+          <button class="btn btn-quiet" type="button" data-close>稍后再说</button>
         </div>
       </div>
     `);
+
+    const button = $('#updateNowBtn');
+    if (button) {
+      button.addEventListener('click', () => {
+        button.disabled = true;
+        runUpdate(latest, manifest);
+      });
+    }
   }
 
   function setUpdateStatus(text) {
