@@ -311,6 +311,15 @@ function mapEducoderAssignments(list, courseName = '高程26秋') {
     if (/已批改|已评分|已批阅/.test(statuses)) status = 'graded';
     if (item.un_commit_work) status = 'pending';
 
+    // 课堂实验（shixun）用关卡完成数判断，status 只表示截止状态
+    const total = Number(item.challenge_count) || 0;
+    const finished = Number(item.finished_challenge_count) || 0;
+    if (item.is_shixun) {
+      const passed = Boolean(item.student_passed_time);
+      status = (total > 0 && finished >= total) || passed ? 'submitted' : 'pending';
+    }
+
+    const progress = total > 0 ? `${finished}/${total}` : '';
     const end = item.end_time_s || item.end_time;
     const date = end ? new Date(String(end).replace(' ', 'T') + '+08:00') : null;
 
@@ -319,7 +328,7 @@ function mapEducoderAssignments(list, courseName = '高程26秋') {
       platform: 'educoder',
       course: courseName,
       title: item.name || 'Educoder 作业',
-      description: `${item.author || 'Educoder'} · ${statuses || '作业'}`,
+      description: `${item.author || 'Educoder'} · ${statuses || '作业'}${progress ? ` · ${progress}` : ''}`,
       dueAt: date && !Number.isNaN(date.getTime()) ? date.toISOString() : new Date().toISOString(),
       status,
       done: status !== 'pending',
@@ -327,7 +336,9 @@ function mapEducoderAssignments(list, courseName = '高程26秋') {
       type: item.is_shixun ? '实验' : '作业',
       priority: 'normal',
       points: '',
-      url: 'https://www.educoder.net/classrooms/6ryliqfk/common_homework',
+      url: item.shixun_identifier
+        ? `https://www.educoder.net/shixuns/${item.shixun_identifier}/challenges`
+        : 'https://www.educoder.net/classrooms/6ryliqfk/common_homework',
     };
   });
 }
@@ -848,6 +859,24 @@ const SOURCES = {
     },
     async afterLogin(context, { cookie }, dataDir) {
       const page = context.pages()[0] || (await context.newPage());
+      // 直接读页面自己发出的作业列表请求，比解析 React 树稳
+      const captured = [];
+      page.on('response', (response) => {
+        if (!response.url().includes('/homework_commons.json')) return;
+        captured.push(
+          response
+            .text()
+            .then((text) => {
+              try {
+                return JSON.parse(text);
+              } catch (error) {
+                return null;
+              }
+            })
+            .catch(() => null)
+        );
+      });
+
       await page.goto('https://www.educoder.net/classrooms/6ryliqfk/common_homework', {
         waitUntil: 'domcontentloaded',
         timeout: 60000,
@@ -860,54 +889,19 @@ const SOURCES = {
 
       for (const label of labels) {
         const tab = page.getByText(label, { exact: true }).first();
-        if (await tab.count()) {
-          await tab.click().catch(() => {});
-          await page.waitForTimeout(2500);
-        }
+        if (!(await tab.count())) continue;
+        await tab.click({ timeout: 8000 }).catch(() => {});
+        await page.waitForTimeout(2200);
+      }
 
-        const lists = await page.evaluate(() => {
-          const element = document.querySelector('#root') || document.body;
-          const key = Object.keys(element).find((name) => name.startsWith('__reactContainer$'));
-          if (!key) return [];
-          const root = element[key].stateNode?.current || element[key];
-          const out = [];
-          const visited = new Set();
-          const stack = [root];
-          while (stack.length) {
-            const fiber = stack.pop();
-            if (!fiber || visited.has(fiber)) continue;
-            visited.add(fiber);
-            const props = fiber.memoizedProps;
-            if (props && typeof props === 'object') {
-              for (const propKey of Object.keys(props)) {
-                const value = props[propKey];
-                if (
-                  propKey === 'dataSource' &&
-                  Array.isArray(value) &&
-                  value.some(
-                    (item) =>
-                      item &&
-                      typeof item === 'object' &&
-                      (item.homework_id || item.name)
-                  )
-                ) {
-                  out.push(value);
-                }
-              }
-            }
-            if (fiber.child) stack.push(fiber.child);
-            if (fiber.sibling) stack.push(fiber.sibling);
-          }
-          return out;
-        });
-
-        for (const list of lists) {
-          for (const item of list) {
-            const id = item.homework_id || item.name;
-            if (!id || seen.has(id)) continue;
-            seen.add(id);
-            assignments.push(item);
-          }
+      const payloads = await Promise.all(captured);
+      for (const payload of payloads) {
+        if (!payload || !Array.isArray(payload.homeworks)) continue;
+        for (const item of payload.homeworks) {
+          const id = item.homework_id;
+          if (!id || seen.has(id)) continue;
+          seen.add(id);
+          assignments.push(item);
         }
       }
 
