@@ -12,7 +12,7 @@ namespace TongjiHubSetup
 {
     internal static class Program
     {
-        public const string AppVersion = "ver.0.19";
+        public const string AppVersion = "ver.0.20";
         public const string PayloadResource = "TongjiHub.Payload";
         public const string LogoResource = "TongjiHub.Logo";
 
